@@ -162,6 +162,7 @@ class Line:
       else:
         print("There isn't a Tellstone there!")
         return
+      #Swaps the Tellstones and updates the line.
       self.line[first_index], self.line[second_index] = self.line[second_index], self.line[first_index]
       self.update_line()
     else:
@@ -183,17 +184,59 @@ class Line:
       #The -1's in the line indexs are to change the input 1-7 to the index 0-6. Just for accessibility.
       if type(line.line[position - 1]) is Tellstone and line.line[position - 1].hidden == True:
         for second in [3,2,1]:
-          print(f"Only the {current_player} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
+          #Dynamically displays a 3 second countdown.
+          print(f"Only {current_player.name} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
           time.sleep(1)
         input(f"The stone in position {position} is {line.line[position-1].name}. Press enter to continue.")
+        #Moves cursor up 2 lines and erases position text. Doesn't work in cmd.
         sys.stdout.write("\033[F")
         sys.stdout.write("\033[F")
         print("\r\n")
       else:
         print("There either isn't a Tellstone there or it isn't hidden.")
+  
+  def challenge(self):
+    if not self.is_empty():
+      #Asks for position on the line, then check to see if there is a stone there that is hidden.
+      position = input(f"Which position stone are you challenging your opponent to name, {current_player.name}? ")
+      try:
+        position = int(position)
+        #real_index is the true index of the Tellstone.
+        real_index = position - 1
+      except ValueError:
+        print("Input must be a number!")
+        return
+      if position not in range(1,8):
+        print("Please use a number 1-7")
+        return
+      elif not line.line[real_index].hidden:
+        print("That Tellstone isn't hidden!")
+      elif line.line[real_index] == " . ":
+        print("There isn't a Tellstone there.")
+      else:
+        opponent_guess = input(f"Alright {next_player.name}, what token do you think is in that postion? ")
+        opponent_guess = opponent_guess.lower()
+        if opponent_guess in stones_dict.keys():
+          opponent_guess = stones_dict[opponent_guess]
+        if opponent_guess == line.line[real_index]:
+          print(f"Correct! Your guess, and the token at position {position}, is {line.line[real_index]}.")
+          next_player.points += 1
+        else:
+          print(f"Ooh, tough luck. The token in position {position} was actually {line.line[real_index]}.")
+        line.line[real_index].hidden = False
+        line.update_line()
+
+  def boast(self):
+    pass
 
       
-      
+
+class Player:
+  def __init__(self, name):
+    self.name = name
+    self.points = 0
+  def gain_point(self):
+    self.points += 1
 
 
 
@@ -222,6 +265,10 @@ stones_dict = {
 line = Line()
 line.update_line()
 
+#Initalizing players
+player_one = Player("Player One")
+player_two = Player("Player Two")
+
 
 #Game begins below
 game_over = 0
@@ -230,10 +277,15 @@ while game_over == 0:
   print(line)
   #Alternate player turns.
   if player_turn % 2 == 0:
-    current_player = "Player 1"
+    current_player = player_one
+    next_player = player_two
   else:
-    current_player = "Player 2"
-  user_input = input(f"What would you like to do {current_player}? ")
+    current_player = player_two
+    next_player = player_one
+  if current_player.points == 3:
+    print(f"Game over! {current_player.name} reached 3 points!")
+    game_over = 1
+  user_input = input(f"What would you like to do {current_player.name}? You have {current_player.points} points. ")
   user_input = user_input.lower()
   if user_input == "help":
     print("""You can do the following actions:
@@ -241,6 +293,8 @@ while game_over == 0:
     "Hide" a face-up stone that is on the line by turning it face-down.
     "Swap" two stones around.
     "Peek" at a stone that is currently hidden.
+    "Challenge" your opponent to name any face-down stone.
+    "Boast" that you know all the face-down stones for an instant victory!
     """)
   elif user_input == "place":
     line.add_stone()
@@ -250,6 +304,10 @@ while game_over == 0:
     line.swap_stones()
   elif user_input == "peek":
     line.peek()
+  elif user_input == "challenge":
+    line.challenge()
+  elif user_input == "boast":
+    line.boast()
   elif user_input == "debug":
     debug_input = input("Cheaters never prosper :( ")
     if debug_input == "list":
@@ -258,6 +316,7 @@ while game_over == 0:
     if debug_input == "fill":
       index = 0
       for value in stones_dict.values():
+        value.is_on_mat = True
         line.line[index] = value
         index += 1
       line.update_line()
