@@ -189,71 +189,77 @@ class Line:
 
 
   def peek(self):
-    if not self.is_empty():
-      #If there wasn't a point last turn, only do position once.
-      if next_player.point_last_turn == False:
-        position = False
-        #Asks for position on the line, then check to see if there is a stone there that is hidden.
-        while position == False:
-          position = input("What position would you like to peek at? ")
-          position = self.peek_error_test(position)
-        #The -1's in the line indexs are to change the input 1-7 to the index 0-6. Just for accessibility.
-        if type(self.line[position - 1]) is Tellstone and self.line[position - 1].hidden == True:
-          for second in [3,2,1]:
-            #Dynamically displays a 3 second countdown.
-            print(f"Only {current_player.name} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
-            time.sleep(1)
-          input(f"The stone in position {position} is {self.line[position-1].name}. Press enter to continue.")
-        else:
-          print("There either isn't a Tellstone there or it isn't hidden.")
-      #If there was a point last turn, you can peek at up to 3 stones.
-      if next_player.point_last_turn == True:
-        print(f"{next_player} scored a point last turn, so you can look at up to 3 stones.")
-        #Find how many hidden stones there are
-        self.hidden_count = 0
-        for item in line.line:
-          if isinstance(item, Tellstone) and item.hidden == True:
-            self.hidden_count += 1
-        #Ask the user how many stones they want to look at
-        how_many_stones = False
-        while how_many_stones == False:
-          how_many_stones = input(f"There are currently {self.hidden_count} face-down stones. How many would you like to peek at (up to three)? ")
-          how_many_stones = self.stones_count_error_test(how_many_stones)
-        position_list = []
-        #Ask the user what positions they want to peek at
-        for i in range(1,how_many_stones):
-          position = False
-          while position == False:
-            position = ("What position would you like to peek at? ")
-            position = self.peek_error_test(position)
-          position_list.append(position)
+    #Find how many hidden stones there are
+    self.hidden_count = 0
+    for item in line.line:
+       if isinstance(item, Tellstone) and item.hidden == True:
+        self.hidden_count += 1
+    #If no hidden stones, end funct
+    if self.hidden_count <= 0:
+      print("There are no hidden stones!")
+      take_it_back_now_yall()
+      return
+    #If line is empty, end funct
+    if self.is_empty():
+      print("There are no hidden stones!")
+      take_it_back_now_yall()
+      return
+    #If there wasn't a point last turn, only do position once.
+    if next_player.point_last_turn == False:
+      position = False
+      #Asks for position on the line, then check to see if there is a stone there that is hidden.
+      while position == False:
+        position = input("What position would you like to peek at? ")
+        position = self.peek_error_test(position)
+      #The -1's in the line indexs are to change the input 1-7 to the index 0-6. Just for accessibility.
+      if type(self.line[position - 1]) is Tellstone and self.line[position - 1].hidden == True:
         for second in [3,2,1]:
           #Dynamically displays a 3 second countdown.
           print(f"Only {current_player.name} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
           time.sleep(1)
-        #Displays the stones then waits for an input.
-        for index in position_list:
-          print(f"The stone in position {index} is {self.line[index - 1]}.")
-        input("Press enter to continue.")
+        input(f"The stone in position {position} is {self.line[position-1].name}. Press ENTER to continue.")
+      else:
+        print("There either isn't a Tellstone there or it isn't hidden.")
+    #If there was a point last turn, you can peek at up to 3 stones.
+    if next_player.point_last_turn == True:
+      print(f"{next_player} scored a point last turn, so you can look at up to 3 stones.")
+      #Ask the user how many stones they want to look at
+      how_many_stones = False
+      while how_many_stones == False:
+        how_many_stones = input(f"There are currently {self.hidden_count} face-down stones. How many would you like to peek at (up to three)? ")
+        how_many_stones = self.stones_count_error_test(how_many_stones)
+      position_list = []
+      #Ask the user what positions they want to peek at
+      for i in range(1,how_many_stones + 1):
+        position = False
+        while position == False:
+          position = input("What position would you like to peek at? ")
+          position = self.peek_error_test(position)
+        position_list.append(position)
+      for second in [3,2,1]:
+        #Dynamically displays a 3 second countdown.
+        print(f"Only {current_player.name} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
+        time.sleep(1)
+      #Displays the stones then waits for an input.
+      print("\n")
+      for index in position_list:
+        print(f"The stone in position {index} is {self.line[index - 1]}.")
+      input("Press ENTER to continue.")
+    
 
 
   #Error test functions for the above peek function. Returns false and loops with a While loop if the input is invalid.
   def stones_count_error_test(self, stones_count):
     try:
-      print(type(stones_count))
       stones_count = int(stones_count)
-    except ValueError:
-      print(type(stones_count))
+    except:
       print("Input must be a number!")
-      take_it_back_now_yall()
       return False
     if stones_count not in range(1,4):
       print("Please use a number 1-3")
-      take_it_back_now_yall()
       return False
     if stones_count > self.hidden_count:
       print("There aren't that many hidden stones!")
-      take_it_back_now_yall()
       return False
     else:
       return stones_count
@@ -261,13 +267,11 @@ class Line:
   def peek_error_test(self, position):
     try:
       position = int(position)
-    except ValueError:
+    except:
       print("Input must be a number!")
-      take_it_back_now_yall()
       return False
     if position not in range(1,8):
       print("Please use a number 1-7")
-      take_it_back_now_yall()
       return False
     else:
       return position
@@ -452,4 +456,4 @@ while game_over == 0:
   elif user_input == "exit":
     game_over = 1
   else:
-    input("That's not a valid command.")
+    input("That's not a valid command. Press ENTER to continue. ")
