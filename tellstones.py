@@ -1,3 +1,6 @@
+import time
+import sys
+
 class Tellstone:
   def __init__(self, name):
     self.name = name
@@ -38,6 +41,11 @@ class Line:
   def __repr__(self):
     return (f"The line is currently:\n{self.string}")
 
+  def is_empty(self):
+    if self.string == " .  .  .  .  .  .  . ":
+      print("The line is empty!")
+      return True
+    return False
 
   #Updates self.string based on the current state of self.line
   def update_line(self):
@@ -101,14 +109,47 @@ class Line:
 
   
   def hide_stone(self):
-    stone = input("What stone would you like to hide? ")
-    stone = stone.lower()
-    if stone in stones_dict.keys():
-      stone = stones_dict[stone]
-      stone.hide()
-      self.update_line()
-    else:
-      print(f"{stone} isn't a valid stone. Did you remember to put 'the' before it?")
+    if not self.is_empty():
+      #Asks for stone and makes sure it's on the line. If it is, it hides it.
+      stone = input("What stone would you like to hide? ")
+      stone = stone.lower()
+      if stone in stones_dict.keys():
+        stone = stones_dict[stone]
+        if stone.is_on_mat == True:
+          stone.hide()
+          self.update_line()
+        else:
+          print("That stone isn't on the mat!")
+      else:
+        print(f"{stone} isn't a valid stone. Did you remember to put 'the' before it?")
+
+
+  def peek(self):
+    if not self.is_empty():
+      #Asks for position on the line, then check to see if there is a stone there that is hidden.
+      position = input("What position would you like to peek at? ")
+      try:
+        position = int(position)
+      except ValueError:
+        print("Input must be a number!")
+        return
+      if position not in range(7):
+        print("Please use a number 1-7")
+        return
+      #The -1's in the line indexs are to change the input 1-7 to the index 0-6. Just for accessibility.
+      if type(line.line[position - 1]) is Tellstone and line.line[position - 1].hidden == True:
+        for second in [3,2,1]:
+          print(f"Only the current player should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
+          time.sleep(1)
+        input(f"The stone in position {position} is {line.line[position-1].name}. Press enter to continue.")
+        sys.stdout.write("\033[F")
+        sys.stdout.write("\033[F")
+        print("\r\n")
+      else:
+        print("There either isn't a Tellstone there or it isn't hidden.")
+
+      
+      
 
 
 
@@ -142,17 +183,21 @@ line.update_line()
 game_over = 0
 while game_over == 0:
   print(line)
+  #add player turn functionality
   user_input = input("What would you like to do? ")
   user_input = user_input.lower()
   if user_input == "help":
     print("""You can do the following actions:
     "Place" a stone from the pool onto the line, to the left or right of the current stones in play
     "Hide" a face-up stone that is on the line by turning it face-down.
+    "Peek" at a stone that is currently hidden.
     """)
   elif user_input == "place":
     line.add_stone()
   elif user_input == "hide":
     line.hide_stone()
+  elif user_input == "peek":
+    line.peek()
   elif user_input == "exit":
     game_over = 1
   else:
