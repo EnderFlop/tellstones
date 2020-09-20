@@ -48,6 +48,7 @@ class Line:
   def is_empty(self):
     if self.string == " .  .  .  .  .  .  . ":
       print("The line is empty!")
+      take_it_back_now_yall()
       return True
     return False
 
@@ -77,9 +78,11 @@ class Line:
       stone = stones_dict[stone]
     else:
       print(f"{stone} isn't a valid stone. Did you remember to put 'the' before it?")
+      take_it_back_now_yall()
       return
     if stone.is_on_mat == True:
       print(f"{stone} is already on the line!")
+      take_it_back_now_yall()
       return
     #If the line is empty, add the stone to the middle
     if self.string == " .  .  .  .  .  .  . ":
@@ -99,6 +102,7 @@ class Line:
           self.update_line()
         else:
           print("That's off the line!")
+          take_it_back_now_yall()
       #If it's right, add it to the right and move self.furthest_right to the right by 1. Check to see if there is space.
       elif left_or_right == "r":
         if self.furthest_right < 6:
@@ -108,8 +112,10 @@ class Line:
           self.update_line()
         else:
           print("That's off the line!")
+          take_it_back_now_yall()
       elif left_or_right != "r" or "l":
         print("Not a valid input.")
+        take_it_back_now_yall()
 
   
   def hide_stone(self):
@@ -124,8 +130,10 @@ class Line:
           self.update_line()
         else:
           print("That stone isn't on the mat!")
+          take_it_back_now_yall()
       else:
         print(f"{stone} isn't a valid stone. Did you remember to put 'the' before it?")
+        take_it_back_now_yall()
 
   def swap_stones(self):
     #begin by iterating through the items in self.line and making sure there are at least 2 tellstones.
@@ -140,15 +148,18 @@ class Line:
         first_stone = int(first_stone)
       except ValueError:
         print("Input must be a number!")
+        take_it_back_now_yall()
         return
       if first_stone not in range(1,8):
         print("Please use a number 1-7")
+        take_it_back_now_yall()
         return
       #The -1 is to change 1-7 to 0-6 for QoL.
       if isinstance(self.line[first_stone - 1], Tellstone):
         first_index = first_stone - 1
       else:
         print("There isn't a Tellstone there!")
+        take_it_back_now_yall()
         return
       #Get the second stone to swap
       second_stone = input("What is the position of the other stone you would like to swap? ")
@@ -156,79 +167,155 @@ class Line:
         second_stone = int(second_stone)
       except ValueError:
         print("Input must be a number!")
+        take_it_back_now_yall()
         return
       if second_stone not in range(1,8):
         print("Please use a number 1-7")
+        take_it_back_now_yall()
         return
       #The -1 is to change 1-7 to 0-6 for QoL.
       if isinstance(self.line[second_stone - 1], Tellstone):
         second_index = second_stone - 1
       else:
         print("There isn't a Tellstone there!")
+        take_it_back_now_yall()
         return
       #Swaps the Tellstones and updates the line.
       self.line[first_index], self.line[second_index] = self.line[second_index], self.line[first_index]
       self.update_line()
     else:
       print("There aren't enough Tellstones to swap.")
+      take_it_back_now_yall()
 
 
   def peek(self):
     if not self.is_empty():
-      #Asks for position on the line, then check to see if there is a stone there that is hidden.
-      position = input("What position would you like to peek at? ")
-      try:
-        position = int(position)
-      except ValueError:
-        print("Input must be a number!")
-        return
-      if position not in range(1,8):
-        print("Please use a number 1-7")
-        return
-      #The -1's in the line indexs are to change the input 1-7 to the index 0-6. Just for accessibility.
-      if type(line.line[position - 1]) is Tellstone and line.line[position - 1].hidden == True:
+      #If there wasn't a point last turn, only do position once.
+      if next_player.point_last_turn == False:
+        position = False
+        #Asks for position on the line, then check to see if there is a stone there that is hidden.
+        while position == False:
+          position = input("What position would you like to peek at? ")
+          position = self.peek_error_test(position)
+        #The -1's in the line indexs are to change the input 1-7 to the index 0-6. Just for accessibility.
+        if type(self.line[position - 1]) is Tellstone and self.line[position - 1].hidden == True:
+          for second in [3,2,1]:
+            #Dynamically displays a 3 second countdown.
+            print(f"Only {current_player.name} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
+            time.sleep(1)
+          input(f"The stone in position {position} is {self.line[position-1].name}. Press enter to continue.")
+        else:
+          print("There either isn't a Tellstone there or it isn't hidden.")
+      #If there was a point last turn, you can peek at up to 3 stones.
+      if next_player.point_last_turn == True:
+        print(f"{next_player} scored a point last turn, so you can look at up to 3 stones.")
+        #Find how many hidden stones there are
+        self.hidden_count = 0
+        for item in line.line:
+          if isinstance(item, Tellstone) and item.hidden == True:
+            self.hidden_count += 1
+        #Ask the user how many stones they want to look at
+        how_many_stones = False
+        while how_many_stones == False:
+          how_many_stones = input(f"There are currently {self.hidden_count} face-down stones. How many would you like to peek at (up to three)? ")
+          how_many_stones = self.stones_count_error_test(how_many_stones)
+        position_list = []
+        #Ask the user what positions they want to peek at
+        for i in range(1,how_many_stones):
+          position = False
+          while position == False:
+            position = ("What position would you like to peek at? ")
+            position = self.peek_error_test(position)
+          position_list.append(position)
         for second in [3,2,1]:
           #Dynamically displays a 3 second countdown.
           print(f"Only {current_player.name} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
           time.sleep(1)
-        input(f"The stone in position {position} is {line.line[position-1].name}. Press enter to continue.")
-      else:
-        print("There either isn't a Tellstone there or it isn't hidden.")
+        #Displays the stones then waits for an input.
+        for index in position_list:
+          print(f"The stone in position {index} is {self.line[index - 1]}.")
+        input("Press enter to continue.")
+
+
+  #Error test functions for the above peek function. Returns false and loops with a While loop if the input is invalid.
+  def stones_count_error_test(self, stones_count):
+    try:
+      print(type(stones_count))
+      stones_count = int(stones_count)
+    except ValueError:
+      print(type(stones_count))
+      print("Input must be a number!")
+      take_it_back_now_yall()
+      return False
+    if stones_count not in range(1,4):
+      print("Please use a number 1-3")
+      take_it_back_now_yall()
+      return False
+    if stones_count > self.hidden_count:
+      print("There aren't that many hidden stones!")
+      take_it_back_now_yall()
+      return False
+    else:
+      return stones_count
   
+  def peek_error_test(self, position):
+    try:
+      position = int(position)
+    except ValueError:
+      print("Input must be a number!")
+      take_it_back_now_yall()
+      return False
+    if position not in range(1,8):
+      print("Please use a number 1-7")
+      take_it_back_now_yall()
+      return False
+    else:
+      return position
+  #End error test functions
+
   def challenge(self):
     if not self.is_empty():
       #Asks for position on the line, then check to see if there is a stone there that is hidden.
-      position = input(f"Which position stone are you challenging your opponent to name, {current_player.name}? ")
-      try:
-        position = int(position)
-        #real_index is the true index of the Tellstone.
-        real_index = position - 1
-      except ValueError:
-        print("Input must be a number!")
-        return
-      if position not in range(1,8):
-        print("Please use a number 1-7")
-        return
-      elif not line.line[real_index].hidden:
-        print("That Tellstone isn't hidden!")
-      elif line.line[real_index] == " . ":
-        print("There isn't a Tellstone there.")
-      else:
-        opponent_guess = input(f"Alright {next_player.name}, what token do you think is in that postion? ")
-        opponent_guess = opponent_guess.lower()
-        if opponent_guess in stones_dict.keys():
-          opponent_guess = stones_dict[opponent_guess]
-        if opponent_guess == line.line[real_index]:
-          print(f"Correct! Your guess, and the token at position {position}, is {line.line[real_index]}.")
-          next_player.points += 1
-          #next line is redundant because the value is set to False as soon as their turn starts. There is nothing in the game for if YOU scored a point last turn.
-          #next.player.point_last_turn = True
+      error_check = 0
+      while error_check == 0:
+        position = input(f"Which position stone are you challenging {next_player} to name? ")
+        try:
+          position = int(position)
+          #real_index is the true index of the Tellstone.
+          real_index = position - 1
+        except ValueError:
+          print("Input must be a number!")
+          take_it_back_now_yall()
+          return
+        if position not in range(1,8):
+          print("Please use a number 1-7")
+          take_it_back_now_yall()
+          return
+        elif not line.line[real_index].hidden:
+          print("That Tellstone isn't hidden!")
+          take_it_back_now_yall()
+        elif line.line[real_index] == " . ":
+          print("There isn't a Tellstone there.")
+          take_it_back_now_yall()
         else:
-          print(f"Ooh, tough luck. The token in position {position} was actually {line.line[real_index]}.")
-          current_player.points += 1
-          current_player.point_last_turn = True
-        line.line[real_index].hidden = False
-        line.update_line()
+          error_check = 1
+      opponent_guess = input(f"Alright {next_player.name}, what stone do you think is in that postion? ")
+      opponent_guess = opponent_guess.lower()
+      if opponent_guess in stones_dict.keys():
+        opponent_guess = stones_dict[opponent_guess]
+      if opponent_guess == line.line[real_index]:
+        print(f"Correct! Your guess, and the token at position {position}, is {line.line[real_index]}.")
+        next_player.points += 1
+        input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press enter to continue.")
+        #next line is redundant because the value is set to False as soon as their turn starts. There is nothing in the game for if YOU scored a point last turn.
+        #next.player.point_last_turn = True
+      else:
+        print(f"Ooh, tough luck. The token in position {position} was actually {line.line[real_index]}.")
+        current_player.points += 1
+        current_player.point_last_turn = True
+        input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press enter to continue.")
+      line.line[real_index].hidden = False
+      line.update_line()
 
   def boast(self):
     pass
@@ -240,9 +327,10 @@ class Player:
     self.name = name
     self.points = 0
     self.point_last_turn = False
+  def __repr__(self):
+    return self.name
   def gain_point(self):
     self.points += 1
-
 
 
 #Initalizing all the stones
@@ -274,10 +362,23 @@ line.update_line()
 player_one = Player("Player One")
 player_two = Player("Player Two")
 
+#Player turn variable
+global player_turn
+player_turn = 0
+
+#Player turn function so only certain commands advance the turn.
+def player_turn_advance():
+  global player_turn
+  player_turn += 1
+
+#For if a player messes up an input, it doesnt advance the turn.
+def take_it_back_now_yall():
+  input("Press ENTER to continue.")
+  global player_turn
+  player_turn -= 1
 
 #Game begins below
 game_over = 0
-player_turn = 0
 while game_over == 0:
   clear()
   print(line)
@@ -308,37 +409,47 @@ while game_over == 0:
     """)
   elif user_input == "place":
     line.add_stone()
+    player_turn_advance()
   elif user_input == "hide":
     line.hide_stone()
+    player_turn_advance()
   elif user_input == "swap":
     line.swap_stones()
+    player_turn_advance()
   elif user_input == "peek":
     line.peek()
+    player_turn_advance()
   elif user_input == "challenge":
     line.challenge()
+    player_turn_advance()
   elif user_input == "boast":
     line.boast()
+    player_turn_advance()
   elif user_input == "debug":
     debug_input = input("Cheaters never prosper :( ")
     if debug_input == "list":
       for i in range(7):
         print(line.line[i])
-    if debug_input == "fill":
+    elif debug_input == "fill":
       index = 0
       for value in stones_dict.values():
         value.is_on_mat = True
         line.line[index] = value
         index += 1
       line.update_line()
-    if debug_input == "hide":
+    elif debug_input == "hide":
       for value in stones_dict.values():
         value.hidden = True
       line.update_line()
+    elif debug_input == "next player point":
+      next_player.points += 1
+      next_player.point_last_turn = True
+    elif debug_input == "current player point":
+      current_player.points += 1
+      current_player.point_last_turn = True
     else:
-      print("Not a valid debugging command.")
+      input("Not a valid debugging command.")
   elif user_input == "exit":
     game_over = 1
   else:
-    print("That's not a valid command.")
-  player_turn += 1
-
+    input("That's not a valid command.")
