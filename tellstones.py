@@ -1,5 +1,9 @@
 import time
 import sys
+import os
+
+#Initalizing console clearer function.
+clear = lambda: os.system("cls")
 
 class Tellstone:
   def __init__(self, name):
@@ -188,10 +192,6 @@ class Line:
           print(f"Only {current_player.name} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
           time.sleep(1)
         input(f"The stone in position {position} is {line.line[position-1].name}. Press enter to continue.")
-        #Moves cursor up 2 lines and erases position text. Doesn't work in cmd.
-        sys.stdout.write("\033[F")
-        sys.stdout.write("\033[F")
-        print("\r\n")
       else:
         print("There either isn't a Tellstone there or it isn't hidden.")
   
@@ -221,8 +221,12 @@ class Line:
         if opponent_guess == line.line[real_index]:
           print(f"Correct! Your guess, and the token at position {position}, is {line.line[real_index]}.")
           next_player.points += 1
+          #next line is redundant because the value is set to False as soon as their turn starts. There is nothing in the game for if YOU scored a point last turn.
+          #next.player.point_last_turn = True
         else:
           print(f"Ooh, tough luck. The token in position {position} was actually {line.line[real_index]}.")
+          current_player.points += 1
+          current_player.point_last_turn = True
         line.line[real_index].hidden = False
         line.update_line()
 
@@ -235,6 +239,7 @@ class Player:
   def __init__(self, name):
     self.name = name
     self.points = 0
+    self.point_last_turn = False
   def gain_point(self):
     self.points += 1
 
@@ -274,27 +279,32 @@ player_two = Player("Player Two")
 game_over = 0
 player_turn = 0
 while game_over == 0:
+  clear()
   print(line)
-  #Alternate player turns.
+  #Alternate player turns and turn their point_last_turn value to False.
   if player_turn % 2 == 0:
     current_player = player_one
+    current_player.point_last_turn = False
     next_player = player_two
   else:
     current_player = player_two
+    current_player.point_last_turn = False
     next_player = player_one
+  #Check to see if a player has won
   if current_player.points == 3:
     print(f"Game over! {current_player.name} reached 3 points!")
     game_over = 1
   user_input = input(f"What would you like to do {current_player.name}? You have {current_player.points} points. ")
   user_input = user_input.lower()
   if user_input == "help":
-    print("""You can do the following actions:
+    input("""You can do the following actions:
     "Place" a stone from the pool onto the line, to the left or right of the current stones in play
     "Hide" a face-up stone that is on the line by turning it face-down.
     "Swap" two stones around.
     "Peek" at a stone that is currently hidden.
     "Challenge" your opponent to name any face-down stone.
     "Boast" that you know all the face-down stones for an instant victory!
+    Press ENTER to continue.
     """)
   elif user_input == "place":
     line.add_stone()
@@ -319,6 +329,10 @@ while game_over == 0:
         value.is_on_mat = True
         line.line[index] = value
         index += 1
+      line.update_line()
+    if debug_input == "hide":
+      for value in stones_dict.values():
+        value.hidden = True
       line.update_line()
     else:
       print("Not a valid debugging command.")
