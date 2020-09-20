@@ -123,6 +123,50 @@ class Line:
       else:
         print(f"{stone} isn't a valid stone. Did you remember to put 'the' before it?")
 
+  def swap_stones(self):
+    #begin by iterating through the items in self.line and making sure there are at least 2 tellstones.
+    tellstone_count = 0
+    for index in range(7):
+      if isinstance(self.line[index], Tellstone):
+        tellstone_count += 1
+    if tellstone_count >= 2:
+      #Get the first stone to swap
+      first_stone = input("What is the position of the first stone you would like to swap? ")
+      try:
+        first_stone = int(first_stone)
+      except ValueError:
+        print("Input must be a number!")
+        return
+      if first_stone not in range(1,8):
+        print("Please use a number 1-7")
+        return
+      #The -1 is to change 1-7 to 0-6 for QoL.
+      if isinstance(self.line[first_stone - 1], Tellstone):
+        first_index = first_stone - 1
+      else:
+        print("There isn't a Tellstone there!")
+        return
+      #Get the second stone to swap
+      second_stone = input("What is the position of the other stone you would like to swap? ")
+      try:
+        second_stone = int(second_stone)
+      except ValueError:
+        print("Input must be a number!")
+        return
+      if second_stone not in range(1,8):
+        print("Please use a number 1-7")
+        return
+      #The -1 is to change 1-7 to 0-6 for QoL.
+      if isinstance(self.line[second_stone - 1], Tellstone):
+        second_index = second_stone - 1
+      else:
+        print("There isn't a Tellstone there!")
+        return
+      self.line[first_index], self.line[second_index] = self.line[second_index], self.line[first_index]
+      self.update_line()
+    else:
+      print("There aren't enough Tellstones to swap.")
+
 
   def peek(self):
     if not self.is_empty():
@@ -133,13 +177,13 @@ class Line:
       except ValueError:
         print("Input must be a number!")
         return
-      if position not in range(7):
+      if position not in range(1,8):
         print("Please use a number 1-7")
         return
       #The -1's in the line indexs are to change the input 1-7 to the index 0-6. Just for accessibility.
       if type(line.line[position - 1]) is Tellstone and line.line[position - 1].hidden == True:
         for second in [3,2,1]:
-          print(f"Only the current player should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
+          print(f"Only the {current_player} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
           time.sleep(1)
         input(f"The stone in position {position} is {line.line[position-1].name}. Press enter to continue.")
         sys.stdout.write("\033[F")
@@ -181,24 +225,47 @@ line.update_line()
 
 #Game begins below
 game_over = 0
+player_turn = 0
 while game_over == 0:
   print(line)
-  #add player turn functionality
-  user_input = input("What would you like to do? ")
+  #Alternate player turns.
+  if player_turn % 2 == 0:
+    current_player = "Player 1"
+  else:
+    current_player = "Player 2"
+  user_input = input(f"What would you like to do {current_player}? ")
   user_input = user_input.lower()
   if user_input == "help":
     print("""You can do the following actions:
     "Place" a stone from the pool onto the line, to the left or right of the current stones in play
     "Hide" a face-up stone that is on the line by turning it face-down.
+    "Swap" two stones around.
     "Peek" at a stone that is currently hidden.
     """)
   elif user_input == "place":
     line.add_stone()
   elif user_input == "hide":
     line.hide_stone()
+  elif user_input == "swap":
+    line.swap_stones()
   elif user_input == "peek":
     line.peek()
+  elif user_input == "debug":
+    debug_input = input("Cheaters never prosper :( ")
+    if debug_input == "list":
+      for i in range(7):
+        print(line.line[i])
+    if debug_input == "fill":
+      index = 0
+      for value in stones_dict.values():
+        line.line[index] = value
+        index += 1
+      line.update_line()
+    else:
+      print("Not a valid debugging command.")
   elif user_input == "exit":
     game_over = 1
   else:
     print("That's not a valid command.")
+  player_turn += 1
+
