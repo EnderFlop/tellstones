@@ -188,14 +188,17 @@ class Line:
       take_it_back_now_yall()
 
 
-  def peek(self):
-    #Find how many hidden stones there are
+  def find_hidden_count(self):
     self.hidden_count = 0
     for item in line.line:
        if isinstance(item, Tellstone) and item.hidden == True:
         self.hidden_count += 1
+    return self.hidden_count
+
+  def peek(self):
+    #Find how many hidden stones there are
     #If no hidden stones, end funct
-    if self.hidden_count <= 0:
+    if self.find_hidden_count() <= 0:
       print("There are no hidden stones!")
       take_it_back_now_yall()
       return
@@ -310,20 +313,53 @@ class Line:
       if opponent_guess == line.line[real_index]:
         print(f"Correct! Your guess, and the token at position {position}, is {line.line[real_index]}.")
         next_player.points += 1
-        input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press enter to continue.")
+        input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
         #next line is redundant because the value is set to False as soon as their turn starts. There is nothing in the game for if YOU scored a point last turn.
         #next.player.point_last_turn = True
       else:
         print(f"Ooh, tough luck. The token in position {position} was actually {line.line[real_index]}.")
-        current_player.points += 1
-        current_player.point_last_turn = True
-        input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press enter to continue.")
+        current_player.gain_point()
+        input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
       line.line[real_index].hidden = False
       line.update_line()
 
   def boast(self):
-    pass
-
+    if self.is_empty():
+      return
+    if self.find_hidden_count() <= 0:
+      print("There are no hidden stones dummy!")
+      take_it_back_now_yall()
+      return
+    print(f"""{current_player} thinks they know all the face down stones! How do you repsond {next_player}?
+    "Doubt" that they know all the pieces. If they name them all correctly, they instantly win. If they don't, you do!
+    "Believe" that they probably do know all the pieces. This gives them one point, and they don't have to guess anything.
+    "Boast" that YOU know all the pieces, and force {current_player} to either doubt or believe you.
+    """)
+    response = False
+    while response == False:
+      response = input("")
+      response = self.boast_error_check(response)
+    if response == "doubt":
+      pass
+    if response == "believe":
+      print(f"{next_player} believes that {current_player} knows where all the pieces are, and gives up a point.")
+      current_player.gain_point()
+      input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
+    if response == "boast":
+      pass
+      
+  def boast_error_check(self, input):
+    try:
+      input = int(input)
+      print("Not a valid option. Try again.")
+      return False
+    except:
+      input = input.lower()
+      if input == "doubt" or input == "believe" or input == "boast":
+        return input
+      else:
+        print("Not a valid option. Try again.")
+        return False
       
 
 class Player:
@@ -335,6 +371,7 @@ class Player:
     return self.name
   def gain_point(self):
     self.points += 1
+    self.point_last_turn = True
 
 
 #Initalizing all the stones
@@ -445,15 +482,13 @@ while game_over == 0:
       for value in stones_dict.values():
         value.hidden = True
       line.update_line()
-    elif debug_input == "next player point":
-      next_player.points += 1
-      next_player.point_last_turn = True
-    elif debug_input == "current player point":
-      current_player.points += 1
-      current_player.point_last_turn = True
+    elif debug_input == "give point":
+      next_player.gain_point()
+    elif debug_input == "get point":
+      current_player.gain_point()
     else:
-      input("Not a valid debugging command.")
+      input("Not a valid debugging command. ENTER to continue. ")
   elif user_input == "exit":
     game_over = 1
   else:
-    input("That's not a valid command. Press ENTER to continue. ")
+    input("That's not a valid command. ENTER to continue. ")
