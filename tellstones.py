@@ -76,7 +76,7 @@ class Line:
     if stone in stones_dict.keys():
       stone = stones_dict[stone]
     else:
-      print(f"{stone} isn't a valid stone. Did you remember to put 'the' before it?")
+      print(f"'{stone}' isn't a valid stone. Did you remember to put 'the' before it?")
       take_it_back_now_yall()
       return
     if stone.is_on_mat == True:
@@ -131,7 +131,7 @@ class Line:
           print("That stone isn't on the mat!")
           take_it_back_now_yall()
       else:
-        print(f"{stone} isn't a valid stone. Did you remember to put 'the' before it?")
+        print(f"'{stone}' isn't a valid stone. Did you remember to put 'the' before it?")
         take_it_back_now_yall()
 
   def swap_stones(self):
@@ -284,29 +284,27 @@ class Line:
   def challenge(self):
     if not self.is_empty():
       #Asks for position on the line, then check to see if there is a stone there that is hidden.
-      error_check = 0
-      while error_check == 0:
-        position = input(f"Which position stone are you challenging {next_player} to name? ")
-        try:
-          position = int(position)
-          #real_index is the true index of the Tellstone.
-          real_index = position - 1
-        except ValueError:
-          print("Input must be a number!")
-          take_it_back_now_yall()
-          return
-        if position not in range(1,8):
-          print("Please use a number 1-7")
-          take_it_back_now_yall()
-          return
-        elif not self.line[real_index].hidden:
-          print("That Tellstone isn't hidden!")
-          take_it_back_now_yall()
-        elif self.line[real_index] == " . ":
-          print("There isn't a Tellstone there.")
-          take_it_back_now_yall()
-        else:
-          error_check = 1
+      position = input(f"Which position stone are you challenging {next_player} to name? ")
+      try:
+        position = int(position)
+        #real_index is the true index of the Tellstone.
+        real_index = position - 1
+      except ValueError:
+        print("Input must be a number!")
+        take_it_back_now_yall()
+        return
+      if position not in range(1,8):
+        print("Please use a number 1-7")
+        take_it_back_now_yall()
+        return
+      elif not self.line[real_index].hidden:
+        print("That Tellstone isn't hidden!")
+        take_it_back_now_yall()
+        return
+      elif self.line[real_index] == " . ":
+        print("There isn't a Tellstone there.")
+        take_it_back_now_yall()
+        return
       opponent_guess = input(f"Alright {next_player.name}, what stone do you think is in that postion? ")
       opponent_guess = opponent_guess.lower()
       if opponent_guess in stones_dict.keys():
@@ -341,21 +339,30 @@ class Line:
     while response == False:
       response = input("")
       response = self.boast_error_check(response)
+    
+    #This is the big boy function.
     if response == "doubt":
       print(f"{next_player} doesn't believe you know all the pieces {current_player}! Now you have to prove you do!")
       #Create list of hidden stone indexes
       hidden_list = [stone.mat_location for stone in self.line if isinstance(stone, Tellstone) and stone.hidden == True]
       print(self)
+      correct_count = 0
+      #For each index in the list
       for stone_index in hidden_list:
+        #Get a guess from the user on what stone is in that position
         stone_guess = input(f"The Tellstone in position {stone_index + 1} is: ")
         stone_guess = stone_guess.lower()
+        #If the guess is in the stone dictionary
         if stone_guess in stones_dict.keys():
           stone_guess = stones_dict[stone_guess]
         if self.line[stone_index] == stone_guess:
+          #Print correct and update the line so that stone is now visible. Reprint the line and add 1 to correct_count
           print("Correct!")
           self.line[stone_index].hidden = False
           self.update_line()
+          correct_count += 1
           print(self)
+        #Otherwise, end the game. Reveal all stones, print the line, and give the other player an absurd amount of points to rub it in.
         else:
           input(f"\n\nTough luck. That Tellstone was {self.line[stone_index]}. {next_player} wins! Press ENTER to continue.\n\n")
           for value in stones_dict.values():
@@ -364,21 +371,71 @@ class Line:
           for i in range(9000):
             next_player.gain_point()
           break
-      input(f"\n\nAmazing! {current_player} got them all right! They win! Press ENTER to continue.\n\n")
-      for i in range(9000):
-        current_player.gain_point()
+      #If you manage to get them all right, you get a stupid amount of points and you win automatically.
+      if correct_count == len(hidden_list):
+        input(f"\n\nAmazing! {current_player} got them all right! They win! Press ENTER to continue.\n\n")
+        for i in range(9000):
+          current_player.gain_point()
     
     if response == "believe":
       print(f"{next_player} believes that {current_player} knows where all the pieces are, and gives up a point.")
       current_player.gain_point()
       input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
 
+
+
+    #This is a sort of recursion, where next player counters with another boast, and two more options are presented.
     if response == "boast":
       print(f"{next_player} counters with their own boast!")
       print(f"""{current_player}, you can either:
     "Doubt" that they know all the pieces. If they name them all correctly, they instantly win. If they don't, you do!
     "Believe" that they probably do know all the pieces. This gives them one point, and they don't have to guess anything.
     """)
+      response = False
+      while response == False:
+        response = input("")
+        response = self.boast_error_check(response)
+  
+      if response == "doubt":
+        print(f"{current_player} doesn't believe you know all the pieces {next_player}! Time to put your points where your mouth is.")
+        #Create list of hidden stone indexes
+        hidden_list = [stone.mat_location for stone in self.line if isinstance(stone, Tellstone) and stone.hidden == True]
+        print(self)
+        correct_count = 0
+        #For each index in the list
+        for stone_index in hidden_list:
+          #Get a guess from the user on what stone is in that position
+          stone_guess = input(f"The Tellstone in position {stone_index + 1} is: ")
+          stone_guess = stone_guess.lower()
+          #If the guess is in the stone dictionary
+          if stone_guess in stones_dict.keys():
+            stone_guess = stones_dict[stone_guess]
+          if self.line[stone_index] == stone_guess:
+            #Print correct and update the line so that stone is now visible. Reprint the line and add 1 to correct_count
+            print("Correct!")
+            self.line[stone_index].hidden = False
+            self.update_line()
+            correct_count += 1
+            print(self)
+          #Otherwise, end the game. Reveal all stones, print the line, and give the other player an absurd amount of points to rub it in.
+          else:
+            input(f"\n\nTough luck. That Tellstone was {self.line[stone_index]}. {current_player} wins! Press ENTER to continue.\n\n")
+            for value in stones_dict.values():
+              value.hidden = False
+            self.update_line()
+            for i in range(9000):
+              current_player.gain_point()
+            break
+        #If you manage to get them all right, you get a stupid amount of points and you win automatically.
+        if correct_count == len(hidden_list):
+          input(f"\n\nAmazing! {next_player} got them all right! They win! Press ENTER to continue.\n\n")
+          for i in range(9000):
+            next_player.gain_point()
+      
+      if response == "believe":
+        print(f"{current_player} believes that {next_player} knows where all the pieces are, and gives up a point.")
+        next_player.gain_point()
+        input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
 
 
   def boast_error_check(self, input):
@@ -407,6 +464,7 @@ class Player:
     self.point_last_turn = True
 
 
+
 #Initalizing all the stones
 crown = Tellstone("The Crown")
 shield = Tellstone("The Shield")
@@ -425,6 +483,13 @@ stones_dict = {
   "the knight": knight,
   "the hammer": hammer,
   "the scales": scales
+  "crown": crown,
+  "shield": shield,
+  "sword": sword,
+  "flag": flag,
+  "knight": knight,
+  "hammer": hammer,
+  "scales": scales
 }
 
 
@@ -548,6 +613,26 @@ while game_over == 0:
     play_again = input("Thank you for playing! Play again (y/n)? ")
     play_again = play_again.lower()
     if play_again == "y":
+      #This is probably a shit way to do this but I hope it works.
+      #Reinitalizing all the classes in order to reset them to default states.
+      #Initalizing all the stones
+      crown = Tellstone("The Crown")
+      shield = Tellstone("The Shield")
+      sword = Tellstone("The Sword")
+      flag = Tellstone("The Flag")
+      knight = Tellstone("The Knight")
+      hammer = Tellstone("The Hammer")
+      scales = Tellstone("The Scales")
+
+      #Initalizing Line and updating it to make self.list and self.string have the correct values for an empty board.
+      line = Line()
+      line.update_line()
+
+      #Initalizing players
+      player_one = Player("Player One")
+      player_two = Player("Player Two")
+
+      player_turn = 0
       game_over = 0
     else:
       print("Goodbye!")
