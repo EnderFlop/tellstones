@@ -364,17 +364,23 @@ class Line:
           for i in range(9000):
             next_player.gain_point()
           break
-
-
-        
-
+      input(f"\n\nAmazing! {current_player} got them all right! They win! Press ENTER to continue.\n\n")
+      for i in range(9000):
+        current_player.gain_point()
+    
     if response == "believe":
       print(f"{next_player} believes that {current_player} knows where all the pieces are, and gives up a point.")
       current_player.gain_point()
       input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
+
     if response == "boast":
-      pass
-      
+      print(f"{next_player} counters with their own boast!")
+      print(f"""{current_player}, you can either:
+    "Doubt" that they know all the pieces. If they name them all correctly, they instantly win. If they don't, you do!
+    "Believe" that they probably do know all the pieces. This gives them one point, and they don't have to guess anything.
+    """)
+
+
   def boast_error_check(self, input):
     try:
       input = int(input)
