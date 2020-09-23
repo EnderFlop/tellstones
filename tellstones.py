@@ -482,7 +482,7 @@ stones_dict = {
   "the flag": flag,
   "the knight": knight,
   "the hammer": hammer,
-  "the scales": scales
+  "the scales": scales,
   "crown": crown,
   "shield": shield,
   "sword": sword,
