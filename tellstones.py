@@ -76,7 +76,7 @@ class Line:
     if stone in stones_dict.keys():
       stone = stones_dict[stone]
     else:
-      print(f"'{stone}' isn't a valid stone. Did you remember to put 'the' before it?")
+      print(f"'{stone}' isn't a valid stone.")
       take_it_back_now_yall()
       return
     if stone.is_on_mat == True:
@@ -131,7 +131,7 @@ class Line:
           print("That stone isn't on the mat!")
           take_it_back_now_yall()
       else:
-        print(f"'{stone}' isn't a valid stone. Did you remember to put 'the' before it?")
+        print(f"'{stone}' isn't a valid stone.")
         take_it_back_now_yall()
 
   def swap_stones(self):
@@ -588,7 +588,7 @@ def gameplay_loop():
         index = 0
         for value in stones_dict.values():
           value.is_on_mat = True
-          line.line[index] = value
+          line.line[index % 7] = value
           value.mat_location = index
           index += 1
         line.update_line()
