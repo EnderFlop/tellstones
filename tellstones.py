@@ -1,5 +1,13 @@
 import time
 import os
+import tkinter as tk
+
+#Initalizing tkinter buttons
+root = tk.Tk()
+root.title("Input Window")
+frame = tk.Frame(root)
+frame.pack()
+advance = tk.IntVar()
 
 #Initalizing console clearer function.
 clear = lambda: os.system("cls")
@@ -548,64 +556,85 @@ def gameplay_loop():
     clear()
     print(f"Game over! {next_player.name} reached {next_player.points} points!")
     game_over = 1
+  #Reset var for input loop.
+  advance.set(0)
   if game_over == 0:
-    user_input = input(f"What would you like to do {current_player.name}? You have {current_player.points} points. ")
-    user_input = user_input.lower()
-    if user_input == "help":
-      input("""You can do the following actions:
+    print(f"What would you like to do {current_player}? You have {current_player.points} points.")
+    help = tk.Button(frame, text="Help", command=lambda:[print("""You can do the following actions:
       "Place" a stone from the pool onto the line, to the left or right of the current stones in play
       "Hide" a face-up stone that is on the line by turning it face-down.
       "Swap" two stones around.
       "Peek" at a stone that is currently hidden.
       "Challenge" your opponent to name any face-down stone.
       "Boast" that you know all the face-down stones for an instant victory!
-      Press ENTER to continue.
-      """)
-    elif user_input == "place":
-      line.add_stone()
-      player_turn_advance()
-    elif user_input == "hide":
-      line.hide_stone()
-      player_turn_advance()
-    elif user_input == "swap":
-      line.swap_stones()
-      player_turn_advance()
-    elif user_input == "peek":
-      line.peek()
-      player_turn_advance()
-    elif user_input == "challenge":
-      line.challenge()
-      player_turn_advance()
-    elif user_input == "boast":
-      line.boast()
-      player_turn_advance()
-    elif user_input == "debug":
-      debug_input = input("Cheaters never prosper :( ")
-      if debug_input == "list":
-        for i in range(7):
-          print(line.line[i])
-      elif debug_input == "fill":
-        index = 0
-        for value in stones_dict.values():
-          value.is_on_mat = True
-          line.line[index % 7] = value
-          value.mat_location = index
-          index += 1
-        line.update_line()
-      elif debug_input == "hide":
-        for value in stones_dict.values():
-          value.hidden = True
-        line.update_line()
-      elif debug_input == "give point":
-        next_player.gain_point()
-      elif debug_input == "get point":
-        current_player.gain_point()
-      else:
-        input("Not a valid debugging command. ENTER to continue. ")
-    elif user_input == "exit":
-      exit()
-    else:
-      input("That's not a valid command. ENTER to continue. ")
+      """), advance.set(1)])
+    help.pack()
+    place = tk.Button(frame, text="Place", command=lambda:[line.add_stone(), advance.set(1)])
+    place.pack()
+    help.wait_variable(advance)
+      
+    
+
+
+
+#    user_input = input(f"What would you like to do {current_player.name}? You have {current_player.points} points. ")
+#    user_input = user_input.lower()
+#    if user_input == "help":
+#      input("""You can do the following actions:
+#      "Place" a stone from the pool onto the line, to the left or right of the current stones in play
+#      "Hide" a face-up stone that is on the line by turning it face-down.
+#      "Swap" two stones around.
+#      "Peek" at a stone that is currently hidden.
+#      "Challenge" your opponent to name any face-down stone.
+#      "Boast" that you know all the face-down stones for an instant victory!
+#      Press ENTER to continue.
+#      """)
+#    elif user_input == "place":
+#      line.add_stone()
+#      player_turn_advance()
+#    elif user_input == "hide":
+#      line.hide_stone()
+#      player_turn_advance()
+#    elif user_input == "swap":
+#     line.swap_stones()
+#      player_turn_advance()
+#   elif user_input == "peek":
+#      line.peek()
+#      player_turn_advance()
+#    elif user_input == "challenge":
+#      line.challenge()
+#     player_turn_advance()
+#    elif user_input == "boast":
+#      line.boast()
+#      player_turn_advance()
+#    elif user_input == "debug":
+#      debug_input = input("Cheaters never prosper :( ")
+#     if debug_input == "list":
+#       for i in range(7):
+#          print(line.line[i])
+#     elif debug_input == "fill":
+#        index = 0
+#       for value in stones_dict.values():
+#         value.is_on_mat = True
+#         line.line[index % 7] = value
+#         value.mat_location = index
+#          index += 1
+#        line.update_line()
+#     elif debug_input == "hide":
+#       for value in stones_dict.values():
+#          value.hidden = True
+#        line.update_line()
+#      elif debug_input == "give point":
+#       next_player.gain_point()
+#     elif debug_input == "get point":
+#       current_player.gain_point()
+#     else:
+#        input("Not a valid debugging command. ENTER to continue. ")
+#   elif user_input == "exit":
+#      exit()
+#    else:
+#      input("That's not a valid command. ENTER to continue. ")
+
 
 while game_over == 0:
   gameplay_loop()
