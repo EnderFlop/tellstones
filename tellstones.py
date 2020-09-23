@@ -1,5 +1,4 @@
 import time
-import sys
 import os
 
 #Initalizing console clearer function.
@@ -182,6 +181,8 @@ class Line:
         return
       #Swaps the Tellstones and updates the line.
       self.line[first_index], self.line[second_index] = self.line[second_index], self.line[first_index]
+      self.line[first_index].mat_location = first_index
+      self.line[second_index].mat_location = second_index
       self.update_line()
     else:
       print("There aren't enough Tellstones to swap.")
@@ -298,10 +299,10 @@ class Line:
           print("Please use a number 1-7")
           take_it_back_now_yall()
           return
-        elif not line.line[real_index].hidden:
+        elif not self.line[real_index].hidden:
           print("That Tellstone isn't hidden!")
           take_it_back_now_yall()
-        elif line.line[real_index] == " . ":
+        elif self.line[real_index] == " . ":
           print("There isn't a Tellstone there.")
           take_it_back_now_yall()
         else:
@@ -320,8 +321,9 @@ class Line:
         print(f"Ooh, tough luck. The token in position {position} was actually {line.line[real_index]}.")
         current_player.gain_point()
         input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
-      line.line[real_index].hidden = False
-      line.update_line()
+      self.line[real_index].hidden = False
+      self.update_line()
+
 
   def boast(self):
     if self.is_empty():
@@ -340,7 +342,32 @@ class Line:
       response = input("")
       response = self.boast_error_check(response)
     if response == "doubt":
-      pass
+      print(f"{next_player} doesn't believe you know all the pieces {current_player}! Now you have to prove you do!")
+      #Create list of hidden stone indexes
+      hidden_list = [stone.mat_location for stone in self.line if isinstance(stone, Tellstone) and stone.hidden == True]
+      print(self)
+      for stone_index in hidden_list:
+        stone_guess = input(f"The Tellstone in position {stone_index + 1} is: ")
+        stone_guess = stone_guess.lower()
+        if stone_guess in stones_dict.keys():
+          stone_guess = stones_dict[stone_guess]
+        if self.line[stone_index] == stone_guess:
+          print("Correct!")
+          self.line[stone_index].hidden = False
+          self.update_line()
+          print(self)
+        else:
+          input(f"\n\nTough luck. That Tellstone was {self.line[stone_index]}. {next_player} wins! Press ENTER to continue.\n\n")
+          for value in stones_dict.values():
+            value.hidden = False
+          self.update_line()
+          for i in range(9000):
+            next_player.gain_point()
+          break
+
+
+        
+
     if response == "believe":
       print(f"{next_player} believes that {current_player} knows where all the pieces are, and gives up a point.")
       current_player.gain_point()
@@ -418,9 +445,18 @@ def take_it_back_now_yall():
   global player_turn
   player_turn -= 1
 
-#Game begins below
+global game_over
 game_over = 0
-while game_over == 0:
+global current_player
+current_player = player_one
+global next_player
+next_player = player_two
+#Game begins below
+def gameplay_loop():
+  global game_over
+  global current_player
+  global next_player
+  #Clear and print the line
   clear()
   print(line)
   #Alternate player turns and turn their point_last_turn value to False.
@@ -433,62 +469,79 @@ while game_over == 0:
     current_player.point_last_turn = False
     next_player = player_one
   #Check to see if a player has won
-  if current_player.points == 3:
-    print(f"Game over! {current_player.name} reached 3 points!")
+  if current_player.points >= 3:
+    clear()
+    print(f"Game over! {current_player.name} reached {current_player.points} points!")
     game_over = 1
-  user_input = input(f"What would you like to do {current_player.name}? You have {current_player.points} points. ")
-  user_input = user_input.lower()
-  if user_input == "help":
-    input("""You can do the following actions:
-    "Place" a stone from the pool onto the line, to the left or right of the current stones in play
-    "Hide" a face-up stone that is on the line by turning it face-down.
-    "Swap" two stones around.
-    "Peek" at a stone that is currently hidden.
-    "Challenge" your opponent to name any face-down stone.
-    "Boast" that you know all the face-down stones for an instant victory!
-    Press ENTER to continue.
-    """)
-  elif user_input == "place":
-    line.add_stone()
-    player_turn_advance()
-  elif user_input == "hide":
-    line.hide_stone()
-    player_turn_advance()
-  elif user_input == "swap":
-    line.swap_stones()
-    player_turn_advance()
-  elif user_input == "peek":
-    line.peek()
-    player_turn_advance()
-  elif user_input == "challenge":
-    line.challenge()
-    player_turn_advance()
-  elif user_input == "boast":
-    line.boast()
-    player_turn_advance()
-  elif user_input == "debug":
-    debug_input = input("Cheaters never prosper :( ")
-    if debug_input == "list":
-      for i in range(7):
-        print(line.line[i])
-    elif debug_input == "fill":
-      index = 0
-      for value in stones_dict.values():
-        value.is_on_mat = True
-        line.line[index] = value
-        index += 1
-      line.update_line()
-    elif debug_input == "hide":
-      for value in stones_dict.values():
-        value.hidden = True
-      line.update_line()
-    elif debug_input == "give point":
-      next_player.gain_point()
-    elif debug_input == "get point":
-      current_player.gain_point()
+  if next_player.points >= 3:
+    clear()
+    print(f"Game over! {next_player.name} reached {next_player.points} points!")
+    game_over = 1
+  if game_over == 0:
+    user_input = input(f"What would you like to do {current_player.name}? You have {current_player.points} points. ")
+    user_input = user_input.lower()
+    if user_input == "help":
+      input("""You can do the following actions:
+      "Place" a stone from the pool onto the line, to the left or right of the current stones in play
+      "Hide" a face-up stone that is on the line by turning it face-down.
+      "Swap" two stones around.
+      "Peek" at a stone that is currently hidden.
+      "Challenge" your opponent to name any face-down stone.
+      "Boast" that you know all the face-down stones for an instant victory!
+      Press ENTER to continue.
+      """)
+    elif user_input == "place":
+      line.add_stone()
+      player_turn_advance()
+    elif user_input == "hide":
+      line.hide_stone()
+      player_turn_advance()
+    elif user_input == "swap":
+      line.swap_stones()
+      player_turn_advance()
+    elif user_input == "peek":
+      line.peek()
+      player_turn_advance()
+    elif user_input == "challenge":
+      line.challenge()
+      player_turn_advance()
+    elif user_input == "boast":
+      line.boast()
+      player_turn_advance()
+    elif user_input == "debug":
+      debug_input = input("Cheaters never prosper :( ")
+      if debug_input == "list":
+        for i in range(7):
+          print(line.line[i])
+      elif debug_input == "fill":
+        index = 0
+        for value in stones_dict.values():
+          value.is_on_mat = True
+          line.line[index] = value
+          value.mat_location = index
+          index += 1
+        line.update_line()
+      elif debug_input == "hide":
+        for value in stones_dict.values():
+          value.hidden = True
+        line.update_line()
+      elif debug_input == "give point":
+        next_player.gain_point()
+      elif debug_input == "get point":
+        current_player.gain_point()
+      else:
+        input("Not a valid debugging command. ENTER to continue. ")
+    elif user_input == "exit":
+      exit()
     else:
-      input("Not a valid debugging command. ENTER to continue. ")
-  elif user_input == "exit":
-    game_over = 1
-  else:
-    input("That's not a valid command. ENTER to continue. ")
+      input("That's not a valid command. ENTER to continue. ")
+
+while game_over == 0:
+  gameplay_loop()
+  if game_over == 1:
+    play_again = input("Thank you for playing! Play again (y/n)? ")
+    play_again = play_again.lower()
+    if play_again == "y":
+      game_over = 0
+    else:
+      print("Goodbye!")
