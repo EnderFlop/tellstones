@@ -1,5 +1,6 @@
 import time
 import os
+from sys import exit
 import tkinter as tk
 
 #Initalizing tkinter buttons
@@ -8,6 +9,7 @@ root.title("Input Window")
 frame = tk.Frame(root)
 frame.pack()
 advance = tk.IntVar()
+string = tk.StringVar()
 
 #Initalizing console clearer function.
 clear = lambda: os.system("cls")
@@ -79,19 +81,8 @@ class Line:
 
   
   def add_stone(self):
-    stone = input("What stone would you like to place on the line? ")
-    stone = stone.lower()
-    if stone in stones_dict.keys():
-      stone = stones_dict[stone]
-    else:
-      print(f"'{stone}' isn't a valid stone.")
-      take_it_back_now_yall()
-      return
-    if stone.is_on_mat == True:
-      print(f"{stone} is already on the line!")
-      take_it_back_now_yall()
-      return
-    #If the line is empty, add the stone to the middle
+    clear_window()
+    stone = stone_buttons()
     if self.string == " .  .  .  .  .  .  . ":
       location = 3
       self.line[location] = stone
@@ -484,20 +475,13 @@ scales = Tellstone("The Scales")
 
 #Initalizing dict of strings to class names:
 stones_dict = {
-  "the crown": crown,
-  "the shield": shield,
-  "the sword": sword,
-  "the flag": flag,
-  "the knight": knight,
-  "the hammer": hammer,
-  "the scales": scales,
-  "crown": crown,
-  "shield": shield,
-  "sword": sword,
-  "flag": flag,
-  "knight": knight,
-  "hammer": hammer,
-  "scales": scales
+  "The Crown": crown,
+  "The Shield": shield,
+  "The Sword": sword,
+  "The Flag": flag,
+  "The Knight": knight,
+  "The Hammer": hammer,
+  "The Scales": scales,
 }
 
 
@@ -524,6 +508,47 @@ def take_it_back_now_yall():
   global player_turn
   player_turn -= 1
 
+def position_buttons():
+  for i in range(7):
+    button = tk.Button(frame, text=str(i+1), command=lambda:[advance.set(i)])
+    button.pack(side=tk.LEFT, padx=6)
+  button.wait_variable(advance)
+  return advance.get()
+
+def stone_buttons():
+  for name in stones_dict.keys():
+    button = tk.Button(frame, text=name, command=lambda:[string.set(name)])
+    button.pack(side=tk.LEFT, padx=6)
+  button.wait_variable(string)
+  return stones_dict[string.get()]
+
+def action_buttons():
+  x_spread = 6
+  help = tk.Button(frame, text="Help", command=lambda:[print("""You can do the following actions:
+  "Place" a stone from the pool onto the line, to the left or right of the current stones in play
+  "Hide" a face-up stone that is on the line by turning it face-down.
+  "Swap" two stones around.
+  "Peek" at a stone that is currently hidden.
+  "Challenge" your opponent to name any face-down stone.
+  "Boast" that you know all the face-down stones for an instant victory!
+  """), advance.set(1)])
+  help.pack(side=tk.LEFT, padx=x_spread)
+  place = tk.Button(frame, text="Place", command=lambda:[line.add_stone(), advance.set(1)])
+  place.pack(side=tk.LEFT, padx=x_spread)
+  hide = tk.Button(frame, text="Hide", command=lambda:[line.hide_stone(), advance.set(1)])
+  hide.pack(side=tk.LEFT, padx=x_spread)
+  swap = tk.Button(frame, text="Swap", command=lambda:[line.swap_stones(), advance.set(1)])
+  swap.pack(side=tk.LEFT, padx=x_spread)
+  peek = tk.Button(frame, text="Peek", command=lambda:[line.peek(), advance.set(1)])
+  peek.pack(side=tk.LEFT, padx=x_spread)
+  challenge = tk.Button(frame, text="Challenge", command=lambda:[line.challenge(), advance.set(1)])
+  challenge.pack(side=tk.LEFT, padx=x_spread)
+  boast = tk.Button(frame, text="Boast", command=lambda:[line.boast(), advance.set(1)])
+  boast.pack(side=tk.LEFT, padx=x_spread)
+  exit = tk.Button(frame, text="Exit", command=lambda:[root.destroy(), advance.set(1)])
+  exit.pack(side=tk.LEFT, padx=x_spread)
+  help.wait_variable(advance)
+
 
 global game_over
 game_over = 0
@@ -537,7 +562,6 @@ def gameplay_loop():
   global current_player
   global next_player
   #Vars for button setup
-  x_spread = 6
   #Clear and print the line
   clear()
   print(line)
@@ -562,28 +586,7 @@ def gameplay_loop():
   #Reset var for input loop.
   if game_over == 0:
     print(f"What would you like to do {current_player}? You have {current_player.points} points.")
-    help = tk.Button(frame, text="Help", command=lambda:[print("""You can do the following actions:
-      "Place" a stone from the pool onto the line, to the left or right of the current stones in play
-      "Hide" a face-up stone that is on the line by turning it face-down.
-      "Swap" two stones around.
-      "Peek" at a stone that is currently hidden.
-      "Challenge" your opponent to name any face-down stone.
-      "Boast" that you know all the face-down stones for an instant victory!
-      """), advance.set(1)])
-    help.pack(side=tk.LEFT, padx=x_spread)
-    place = tk.Button(frame, text="Place", command=lambda:[line.add_stone(), advance.set(1)])
-    place.pack(side=tk.LEFT, padx=x_spread)
-    hide = tk.Button(frame, text="Hide", command=lambda:[line.hide_stone(), advance.set(1)])
-    hide.pack(side=tk.LEFT, padx=x_spread)
-    swap = tk.Button(frame, text="Swap", command=lambda:[line.swap_stones(), advance.set(1)])
-    swap.pack(side=tk.LEFT, padx=x_spread)
-    peek = tk.Button(frame, text="Peek", command=lambda:[line.peek(), advance.set(1)])
-    peek.pack(side=tk.LEFT, padx=x_spread)
-    challenge = tk.Button(frame, text="Challenge", command=lambda:[line.challenge(), advance.set(1)])
-    challenge.pack(side=tk.LEFT, padx=x_spread)
-    boast = tk.Button(frame, text="Boast", command=lambda:[line.boast(), advance.set(1)])
-    boast.pack(side=tk.LEFT, padx=x_spread)
-    help.wait_variable(advance)
+    action_buttons()
     clear_window()
 
 
