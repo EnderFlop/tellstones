@@ -9,7 +9,8 @@ root.title("Tellstones") #Frame title
 root.resizable(False,False) #Non-resizable
 frame = tk.Frame(root, width=1280, height=300, background="#5B5956") #Size and background color
 frame.grid(row=0, column=0, sticky="nesw") #Init grid
-frame.grid_rowconfigure(2, weight=1) #Init button row with a weight
+for y in range(4): #Init rows 0-3 for filling
+  frame.grid_rowconfigure(y, weight=1)
 for x in range(8): #Init columns 0-7 for buttons
   frame.grid_columnconfigure(x, weight=1)
 frame.grid_propagate(False) #Disable window resizing for widgets
@@ -120,19 +121,11 @@ class Line:
   def hide_stone(self):
     if not self.is_empty():
       #Asks for stone and makes sure it's on the line. If it is, it hides it.
-      stone = input("What stone would you like to hide? ")
-      stone = stone.lower()
-      if stone in stones_dict.keys():
-        stone = stones_dict[stone]
-        if stone.is_on_mat == True:
-          stone.hide()
-          self.update_line()
-        else:
-          print("That stone isn't on the mat!")
-          take_it_back_now_yall()
-      else:
-        print(f"'{stone}' isn't a valid stone.")
-        take_it_back_now_yall()
+      clear_window()
+      stone = hide_buttons()
+      stone.hide()
+      self.update_line()
+
 
   def swap_stones(self):
     #begin by iterating through the items in self.line and making sure there are at least 2 tellstones.
@@ -521,11 +514,24 @@ def position_buttons(hidden=None):
   button.wait_variable(advance)
   return advance.get()
 
+def hide_buttons():
+  column = 0
+  for stone in line.line:
+    if isinstance(stone, Tellstone):
+      if stone.is_on_mat == True:
+        if stone.hidden == False:
+          stone_name = stone.name
+          button = tk.Button(frame, text=stone, command=lambda:[string.set(stone_name)])
+          button.grid(padx=6, row=3, column=column, sticky= "sew")
+    column += 1
+  button.wait_variable(string)
+  return stones_dict[string.get()]
+
 def stone_buttons(hidden=None):
   column = 0
   for name, value in stones_dict.items():
     button = tk.Button(frame, text=name, command=lambda name=name:[string.set(name)])
-    button.grid(padx=6, row=2, column=column, sticky="sew")
+    button.grid(padx=6, row=3, column=column, sticky="sew")
     if hidden == "place":
       if value.is_on_mat == True:
         button["state"] = "disabled"
@@ -535,9 +541,9 @@ def stone_buttons(hidden=None):
 
 def left_right_buttons():
   left = tk.Button(frame, text="Left", command=lambda:[string.set("Left")])
-  left.grid(padx=6, row=2, column=0, sticky="sew", columnspan=4)
+  left.grid(padx=6, row=3, column=0, sticky="sew", columnspan=4)
   right = tk.Button(frame, text="Right", command=lambda:[string.set("Right")])
-  right.grid(padx=6, row=2, column=4, sticky="sew", columnspan=4)
+  right.grid(padx=6, row=3, column=4, sticky="sew", columnspan=4)
   if line.furthest_left == 0:
     left["state"] = "disabled"
   if line.furthest_right == 6:
@@ -547,7 +553,7 @@ def left_right_buttons():
 
 def action_buttons():
   x_spread = 6
-  row = 2
+  row = 3
   help = tk.Button(frame, text="Help", command=lambda:[print("""You can do the following actions:
   "Place" a stone from the pool onto the line, to the left or right of the current stones in play
   "Hide" a face-up stone that is on the line by turning it face-down.
