@@ -2,20 +2,28 @@ import time
 import os
 from sys import exit
 import tkinter as tk
+from tkinter import ttk
 
 #Initalizing tkinter
 root = tk.Tk() #Init frame
 root.title("Tellstones") #Frame title
 root.resizable(False,False) #Non-resizable
-frame = tk.Frame(root, width=1280, height=300, background="#5B5956") #Size and background color
+frame = tk.Frame(root, width=1280, height=500, background="#5B5956") #Size and background color
 frame.grid(row=0, column=0, sticky="nesw") #Init grid
-for y in range(4): #Init rows 0-3 for filling
+for y in range(16): #Init rows 0-15 for filling
   frame.grid_rowconfigure(y, weight=1)
 for x in range(8): #Init columns 0-7 for buttons
   frame.grid_columnconfigure(x, weight=1)
 frame.grid_propagate(False) #Disable window resizing for widgets
 advance = tk.IntVar() #Var to track user input and return
 string = tk.StringVar() #Same as advance, but a string
+
+#ROW FORMATTING
+#ROW 0-X is the tellstone line
+#ROW X-14 is the task prompt.
+#ROW 14 is the point tracker
+#ROW 15 is the buttons home
+
 
 #Initalizing console clearer function.
 clear = lambda: os.system("cls")
@@ -88,6 +96,7 @@ class Line:
   
   def add_stone(self):
     clear_window()
+    update_instructions("Select a Tellstone to place on the line.")
     stone = stone_buttons("place")
     if self.string == " .  .  .  .  .  .  . ":
       location = 3
@@ -97,6 +106,7 @@ class Line:
     else:
       #If the line isn't empty, get input from the user on whether to add the stone to the left or the right of the current line
       clear_window()
+      update_instructions("Would you like it on the left or the right of the current stones?")
       left_or_right = left_right_buttons()
       #If it's left, add it to the left and move self.furthest_left to the left by 1. Check to see if there is space.
       if left_or_right == "Left":
@@ -505,33 +515,41 @@ def take_it_back_now_yall():
 
 
 #      ::BUTTON DRAW FUNCTIONS BELOW::
-
-
+global x_spread
+x_spread = 6
+global row
+row = 15
 def position_buttons(hidden=None):
+  global x_spread
+  global row
   for i in range(7):
     button = tk.Button(frame, text=str(i+1), command=lambda i=i:[advance.set(i)])
-    button.grid(padx=6, row=2, column=i, sticky="sew")
+    button.grid(padx=x_spread, row=row, column=i, sticky="nsew")
   button.wait_variable(advance)
   return advance.get()
 
-def hide_buttons():
+def hide_buttons(): #This only writes the buttons for the visible stones on the line in their positions, so as not to give away any hints.
   column = 0
+  global x_spread
+  global row
   for stone in line.line:
     if isinstance(stone, Tellstone):
       if stone.is_on_mat == True:
         if stone.hidden == False:
           stone_name = stone.name
           button = tk.Button(frame, text=stone, command=lambda:[string.set(stone_name)])
-          button.grid(padx=6, row=3, column=column, sticky= "sew")
+          button.grid(padx=x_spread, row=row, column=column, sticky= "nsew")
     column += 1
   button.wait_variable(string)
   return stones_dict[string.get()]
 
-def stone_buttons(hidden=None):
+def stone_buttons(hidden=None): #This writes the 7 stones as buttons. It takes an arg, and disables certain buttons accordingly
   column = 0
+  global x_spread
+  global row
   for name, value in stones_dict.items():
     button = tk.Button(frame, text=name, command=lambda name=name:[string.set(name)])
-    button.grid(padx=6, row=3, column=column, sticky="sew")
+    button.grid(padx=x_spread, row=row, column=column, sticky="nsew")
     if hidden == "place":
       if value.is_on_mat == True:
         button["state"] = "disabled"
@@ -539,11 +557,13 @@ def stone_buttons(hidden=None):
   button.wait_variable(string)
   return stones_dict[string.get()]
 
-def left_right_buttons():
+def left_right_buttons(): #These are the buttons that let you choose left or right when you place a stone.
+  global x_spread
+  global row
   left = tk.Button(frame, text="Left", command=lambda:[string.set("Left")])
-  left.grid(padx=6, row=3, column=0, sticky="sew", columnspan=4)
+  left.grid(padx=x_spread, row=row, column=0, sticky="nsew", columnspan=4)
   right = tk.Button(frame, text="Right", command=lambda:[string.set("Right")])
-  right.grid(padx=6, row=3, column=4, sticky="sew", columnspan=4)
+  right.grid(padx=x_spread, row=row, column=4, sticky="nsew", columnspan=4)
   if line.furthest_left == 0:
     left["state"] = "disabled"
   if line.furthest_right == 6:
@@ -551,34 +571,51 @@ def left_right_buttons():
   left.wait_variable(string)
   return string.get()
 
-def action_buttons():
-  x_spread = 6
-  row = 3
-  help = tk.Button(frame, text="Help", command=lambda:[print("""You can do the following actions:
-  "Place" a stone from the pool onto the line, to the left or right of the current stones in play
-  "Hide" a face-up stone that is on the line by turning it face-down.
-  "Swap" two stones around.
-  "Peek" at a stone that is currently hidden.
-  "Challenge" your opponent to name any face-down stone.
-  "Boast" that you know all the face-down stones for an instant victory!
-  """), advance.set(1)])
-  help.grid(padx=x_spread, row=row, column=0, sticky="sew")
+def action_buttons(): #This creates and places all of the buttons used for declaring your first action. Also follows logic to disable unusable buttons
+  global x_spread
+  global row
+  global string
+  #Prints a help message on the left of the screen that stays there for the next action
+  help = tk.Button(frame, text="Help", command=lambda:[update_instructions("""You can do the following actions:
+"Place" a stone from the pool onto the line, to the left or right of the current stones in play
+"Hide" a face-up stone that is on the line by turning it face-down.
+"Swap" two stones around.
+"Peek" at a stone that is currently hidden.
+"Challenge" your opponent to name any face-down stone.
+"Boast" that you know all the face-down stones for an instant victory!"""), advance.set(1), string.set("True")])
+  help.grid(padx=x_spread, row=row, column=0, sticky="nsew")
+  
   place = tk.Button(frame, text="Place", command=lambda:[line.add_stone(), advance.set(1)])
-  place.grid(padx=x_spread, row=row, column=1, sticky="sew")
+  place.grid(padx=x_spread, row=row, column=1, sticky="nsew")
+  
+
   hide = tk.Button(frame, text="Hide", command=lambda:[line.hide_stone(), advance.set(1)])
-  hide.grid(padx=x_spread, row=row, column=2, sticky="sew")
+  hide.grid(padx=x_spread, row=row, column=2, sticky="nsew")
+
+
   swap = tk.Button(frame, text="Swap", command=lambda:[line.swap_stones(), advance.set(1)])
-  swap.grid(padx=x_spread, row=row, column=3, sticky="sew")
+  swap.grid(padx=x_spread, row=row, column=3, sticky="nsew")
+
+
   peek = tk.Button(frame, text="Peek", command=lambda:[line.peek(), advance.set(1)])
-  peek.grid(padx=x_spread, row=row, column=4, sticky="sew")
+  peek.grid(padx=x_spread, row=row, column=4, sticky="nsew")
+
+
   challenge = tk.Button(frame, text="Challenge", command=lambda:[line.challenge(), advance.set(1)])
-  challenge.grid(padx=x_spread, row=row, column=5, sticky="sew")
+  challenge.grid(padx=x_spread, row=row, column=5, sticky="nsew")
+
+
   boast = tk.Button(frame, text="Boast", command=lambda:[line.boast(), advance.set(1)])
-  boast.grid(padx=x_spread, row=row, column=6, sticky="sew")
+  boast.grid(padx=x_spread, row=row, column=6, sticky="nsew")
+
+
   exit = tk.Button(frame, text="Exit", command=lambda:[root.destroy(), advance.set(1)])
   exit.grid(padx=x_spread, row=row, column=7, sticky="se")
   help.wait_variable(advance)
 
+def update_instructions(string):
+  print_string = tk.Label(frame, text=string, background="#5B5956", anchor="w", justify=tk.LEFT)
+  print_string.grid(row=row-2, rowspan=1, column=0, columnspan=8, sticky="w")
 
 global game_over
 game_over = 0
@@ -588,13 +625,15 @@ global next_player
 next_player = player_two
 #Game begins below
 def gameplay_loop():
+  global x_spread
+  global row
   global game_over
   global current_player
   global next_player
   #Vars for button setup
   #Clear and print the line
-  clear()
-  print(line)
+  visible_line = tk.Label(frame, text=line, bg="#5B5956")
+  visible_line.grid(row=0, rowspan=10, column=0, columnspan=8, sticky="ew")
   #Alternate player turns and turn their point_last_turn value to False.
   if player_turn % 2 == 0:
     current_player = player_one
@@ -615,9 +654,13 @@ def gameplay_loop():
     game_over = 1
   #Reset var for input loop.
   if game_over == 0:
-    print(f"What would you like to do {current_player}? You have {current_player.points} points.")
+    background_label = tk.Label(frame, bg="#787774")
+    background_label.grid(row=row-1, column=0, rowspan=2, columnspan=8, sticky="news")
+    label = tk.Label(frame, text=f"What would you like to do {current_player}? You have {current_player.points} points. {next_player} has {next_player.points} points.", bg="#787774")
+    label.grid(row=row-1, column=0, columnspan=8, sticky="new")
     action_buttons()
-    clear_window()
+    if string.get() != "True": #If "Help" was the last action, don't clear the console. This gives the user a chance to read the text.
+      clear_window()
 
 
 
@@ -628,10 +671,14 @@ def all_children(window):
             _list.extend(item.winfo_children())
     return _list
 def clear_window():
+  global row
   widget_list = all_children(frame)
   for item in widget_list:
     if isinstance(item, tk.Button):
       item.grid_forget()
+    grid_list = frame.grid_slaves(row=row-2, column=0)
+    for widget in grid_list:
+      widget.grid_forget()
 
 
 while game_over == 0:
