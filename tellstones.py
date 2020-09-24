@@ -3,13 +3,18 @@ import os
 from sys import exit
 import tkinter as tk
 
-#Initalizing tkinter buttons
-root = tk.Tk()
-root.title("Input Window")
-frame = tk.Frame(root)
-frame.pack()
-advance = tk.IntVar()
-string = tk.StringVar()
+#Initalizing tkinter
+root = tk.Tk() #Init frame
+root.title("Tellstones") #Frame title
+root.resizable(False,False) #Non-resizable
+frame = tk.Frame(root, width=1280, height=300, background="#5B5956") #Size and background color
+frame.grid(row=0, column=0, sticky="nesw") #Init grid
+frame.grid_rowconfigure(2, weight=1) #Init button row with a weight
+for x in range(8): #Init columns 0-7 for buttons
+  frame.grid_columnconfigure(x, weight=1)
+frame.grid_propagate(False) #Disable window resizing for widgets
+advance = tk.IntVar() #Var to track user input and return
+string = tk.StringVar() #Same as advance, but a string
 
 #Initalizing console clearer function.
 clear = lambda: os.system("cls")
@@ -82,7 +87,7 @@ class Line:
   
   def add_stone(self):
     clear_window()
-    stone = stone_buttons()
+    stone = stone_buttons("place")
     if self.string == " .  .  .  .  .  .  . ":
       location = 3
       self.line[location] = stone
@@ -90,7 +95,8 @@ class Line:
       self.update_line()
     else:
       #If the line isn't empty, get input from the user on whether to add the stone to the left or the right of the current line
-      left_or_right = input(f"Add {stone} to the left or right of the current line? (l/r) ")
+      clear_window()
+      left_or_right = left_right_buttons()
       #If it's left, add it to the left and move self.furthest_left to the left by 1. Check to see if there is space.
       if left_or_right == "l":
         if self.furthest_left > 0:
@@ -508,22 +514,34 @@ def take_it_back_now_yall():
   global player_turn
   player_turn -= 1
 
-def position_buttons():
+def position_buttons(hidden=None):
   for i in range(7):
-    button = tk.Button(frame, text=str(i+1), command=lambda:[advance.set(i)])
+    button = tk.Button(frame, text=str(i+1), command=lambda i=i:[advance.set(i)])
     button.pack(side=tk.LEFT, padx=6)
   button.wait_variable(advance)
   return advance.get()
 
-def stone_buttons():
-  for name in stones_dict.keys():
-    button = tk.Button(frame, text=name, command=lambda:[string.set(name)])
+def stone_buttons(hidden=None):
+  for name, value in stones_dict.items():
+    button = tk.Button(frame, text=name, command=lambda name=name:[string.set(name)])
     button.pack(side=tk.LEFT, padx=6)
+    if hidden == "place":
+      if value.is_on_mat == True:
+        button["state"] = "disabled"
   button.wait_variable(string)
   return stones_dict[string.get()]
 
+def left_right_buttons():
+  left = tk.Button(frame, text="Left", command=[string.set("Left")])
+  left.pack(side=tk.LEFT, padx=6)
+  right = tk.Button(frame, text="Right", command=[string.set("Right")])
+  right.pack(side=tk.LEFT, padx=6)
+  left.wait_variable(string)
+  return string.get()
+
 def action_buttons():
   x_spread = 6
+  row = 2
   help = tk.Button(frame, text="Help", command=lambda:[print("""You can do the following actions:
   "Place" a stone from the pool onto the line, to the left or right of the current stones in play
   "Hide" a face-up stone that is on the line by turning it face-down.
@@ -532,21 +550,21 @@ def action_buttons():
   "Challenge" your opponent to name any face-down stone.
   "Boast" that you know all the face-down stones for an instant victory!
   """), advance.set(1)])
-  help.pack(side=tk.LEFT, padx=x_spread)
+  help.grid(padx=x_spread, row=row, column=0, sticky="sew")
   place = tk.Button(frame, text="Place", command=lambda:[line.add_stone(), advance.set(1)])
-  place.pack(side=tk.LEFT, padx=x_spread)
+  place.grid(padx=x_spread, row=row, column=1, sticky="sew")
   hide = tk.Button(frame, text="Hide", command=lambda:[line.hide_stone(), advance.set(1)])
-  hide.pack(side=tk.LEFT, padx=x_spread)
+  hide.grid(padx=x_spread, row=row, column=2, sticky="sew")
   swap = tk.Button(frame, text="Swap", command=lambda:[line.swap_stones(), advance.set(1)])
-  swap.pack(side=tk.LEFT, padx=x_spread)
+  swap.grid(padx=x_spread, row=row, column=3, sticky="sew")
   peek = tk.Button(frame, text="Peek", command=lambda:[line.peek(), advance.set(1)])
-  peek.pack(side=tk.LEFT, padx=x_spread)
+  peek.grid(padx=x_spread, row=row, column=4, sticky="sew")
   challenge = tk.Button(frame, text="Challenge", command=lambda:[line.challenge(), advance.set(1)])
-  challenge.pack(side=tk.LEFT, padx=x_spread)
+  challenge.grid(padx=x_spread, row=row, column=5, sticky="sew")
   boast = tk.Button(frame, text="Boast", command=lambda:[line.boast(), advance.set(1)])
-  boast.pack(side=tk.LEFT, padx=x_spread)
+  boast.grid(padx=x_spread, row=row, column=6, sticky="sew")
   exit = tk.Button(frame, text="Exit", command=lambda:[root.destroy(), advance.set(1)])
-  exit.pack(side=tk.LEFT, padx=x_spread)
+  exit.grid(padx=x_spread, row=row, column=7, sticky="se")
   help.wait_variable(advance)
 
 
@@ -600,7 +618,8 @@ def all_children(window):
 def clear_window():
   widget_list = all_children(frame)
   for item in widget_list:
-    item.pack_forget()
+    if isinstance(item, tk.Button):
+      item.pack_forget()
 
 while game_over == 0:
   gameplay_loop()
