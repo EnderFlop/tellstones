@@ -524,6 +524,7 @@ def take_it_back_now_yall():
   global player_turn
   player_turn -= 1
 
+
 global game_over
 game_over = 0
 global current_player
@@ -535,6 +536,8 @@ def gameplay_loop():
   global game_over
   global current_player
   global next_player
+  #Vars for button setup
+  x_spread = 6
   #Clear and print the line
   clear()
   print(line)
@@ -557,7 +560,6 @@ def gameplay_loop():
     print(f"Game over! {next_player.name} reached {next_player.points} points!")
     game_over = 1
   #Reset var for input loop.
-  advance.set(0)
   if game_over == 0:
     print(f"What would you like to do {current_player}? You have {current_player.points} points.")
     help = tk.Button(frame, text="Help", command=lambda:[print("""You can do the following actions:
@@ -568,73 +570,34 @@ def gameplay_loop():
       "Challenge" your opponent to name any face-down stone.
       "Boast" that you know all the face-down stones for an instant victory!
       """), advance.set(1)])
-    help.pack()
+    help.pack(side=tk.LEFT, padx=x_spread)
     place = tk.Button(frame, text="Place", command=lambda:[line.add_stone(), advance.set(1)])
-    place.pack()
+    place.pack(side=tk.LEFT, padx=x_spread)
+    hide = tk.Button(frame, text="Hide", command=lambda:[line.hide_stone(), advance.set(1)])
+    hide.pack(side=tk.LEFT, padx=x_spread)
+    swap = tk.Button(frame, text="Swap", command=lambda:[line.swap_stones(), advance.set(1)])
+    swap.pack(side=tk.LEFT, padx=x_spread)
+    peek = tk.Button(frame, text="Peek", command=lambda:[line.peek(), advance.set(1)])
+    peek.pack(side=tk.LEFT, padx=x_spread)
+    challenge = tk.Button(frame, text="Challenge", command=lambda:[line.challenge(), advance.set(1)])
+    challenge.pack(side=tk.LEFT, padx=x_spread)
+    boast = tk.Button(frame, text="Boast", command=lambda:[line.boast(), advance.set(1)])
+    boast.pack(side=tk.LEFT, padx=x_spread)
     help.wait_variable(advance)
-      
-    
+    clear_window()
 
 
 
-#    user_input = input(f"What would you like to do {current_player.name}? You have {current_player.points} points. ")
-#    user_input = user_input.lower()
-#    if user_input == "help":
-#      input("""You can do the following actions:
-#      "Place" a stone from the pool onto the line, to the left or right of the current stones in play
-#      "Hide" a face-up stone that is on the line by turning it face-down.
-#      "Swap" two stones around.
-#      "Peek" at a stone that is currently hidden.
-#      "Challenge" your opponent to name any face-down stone.
-#      "Boast" that you know all the face-down stones for an instant victory!
-#      Press ENTER to continue.
-#      """)
-#    elif user_input == "place":
-#      line.add_stone()
-#      player_turn_advance()
-#    elif user_input == "hide":
-#      line.hide_stone()
-#      player_turn_advance()
-#    elif user_input == "swap":
-#     line.swap_stones()
-#      player_turn_advance()
-#   elif user_input == "peek":
-#      line.peek()
-#      player_turn_advance()
-#    elif user_input == "challenge":
-#      line.challenge()
-#     player_turn_advance()
-#    elif user_input == "boast":
-#      line.boast()
-#      player_turn_advance()
-#    elif user_input == "debug":
-#      debug_input = input("Cheaters never prosper :( ")
-#     if debug_input == "list":
-#       for i in range(7):
-#          print(line.line[i])
-#     elif debug_input == "fill":
-#        index = 0
-#       for value in stones_dict.values():
-#         value.is_on_mat = True
-#         line.line[index % 7] = value
-#         value.mat_location = index
-#          index += 1
-#        line.update_line()
-#     elif debug_input == "hide":
-#       for value in stones_dict.values():
-#          value.hidden = True
-#        line.update_line()
-#      elif debug_input == "give point":
-#       next_player.gain_point()
-#     elif debug_input == "get point":
-#       current_player.gain_point()
-#     else:
-#        input("Not a valid debugging command. ENTER to continue. ")
-#   elif user_input == "exit":
-#      exit()
-#    else:
-#      input("That's not a valid command. ENTER to continue. ")
-
+def all_children(window):
+    _list = window.winfo_children()
+    for item in _list :
+        if item.winfo_children() :
+            _list.extend(item.winfo_children())
+    return _list
+def clear_window():
+  widget_list = all_children(frame)
+  for item in widget_list:
+    item.pack_forget()
 
 while game_over == 0:
   gameplay_loop()
