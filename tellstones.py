@@ -98,28 +98,23 @@ class Line:
       clear_window()
       left_or_right = left_right_buttons()
       #If it's left, add it to the left and move self.furthest_left to the left by 1. Check to see if there is space.
-      if left_or_right == "l":
+      if left_or_right == "Left":
         if self.furthest_left > 0:
           self.line[self.furthest_left - 1] = stone
           stone.add_to_line(self.furthest_left - 1)
           self.furthest_left -= 1
           self.update_line()
         else:
-          print("That's off the line!")
           take_it_back_now_yall()
       #If it's right, add it to the right and move self.furthest_right to the right by 1. Check to see if there is space.
-      elif left_or_right == "r":
+      elif left_or_right == "Right":
         if self.furthest_right < 6:
           self.line[self.furthest_right + 1] = stone
           stone.add_to_line(self.furthest_right + 1)
           self.furthest_right += 1
           self.update_line()
         else:
-          print("That's off the line!")
           take_it_back_now_yall()
-      elif left_or_right != "r" or "l":
-        print("Not a valid input.")
-        take_it_back_now_yall()
 
   
   def hide_stone(self):
@@ -514,28 +509,39 @@ def take_it_back_now_yall():
   global player_turn
   player_turn -= 1
 
+
+
+#      ::BUTTON DRAW FUNCTIONS BELOW::
+
+
 def position_buttons(hidden=None):
   for i in range(7):
     button = tk.Button(frame, text=str(i+1), command=lambda i=i:[advance.set(i)])
-    button.pack(side=tk.LEFT, padx=6)
+    button.grid(padx=6, row=2, column=i, sticky="sew")
   button.wait_variable(advance)
   return advance.get()
 
 def stone_buttons(hidden=None):
+  column = 0
   for name, value in stones_dict.items():
     button = tk.Button(frame, text=name, command=lambda name=name:[string.set(name)])
-    button.pack(side=tk.LEFT, padx=6)
+    button.grid(padx=6, row=2, column=column, sticky="sew")
     if hidden == "place":
       if value.is_on_mat == True:
         button["state"] = "disabled"
+    column += 1
   button.wait_variable(string)
   return stones_dict[string.get()]
 
 def left_right_buttons():
-  left = tk.Button(frame, text="Left", command=[string.set("Left")])
-  left.pack(side=tk.LEFT, padx=6)
-  right = tk.Button(frame, text="Right", command=[string.set("Right")])
-  right.pack(side=tk.LEFT, padx=6)
+  left = tk.Button(frame, text="Left", command=lambda:[string.set("Left")])
+  left.grid(padx=6, row=2, column=0, sticky="sew", columnspan=4)
+  right = tk.Button(frame, text="Right", command=lambda:[string.set("Right")])
+  right.grid(padx=6, row=2, column=4, sticky="sew", columnspan=4)
+  if line.furthest_left == 0:
+    left["state"] = "disabled"
+  if line.furthest_right == 6:
+    right["state"] = "disabled"
   left.wait_variable(string)
   return string.get()
 
@@ -619,7 +625,8 @@ def clear_window():
   widget_list = all_children(frame)
   for item in widget_list:
     if isinstance(item, tk.Button):
-      item.pack_forget()
+      item.grid_forget()
+
 
 while game_over == 0:
   gameplay_loop()
