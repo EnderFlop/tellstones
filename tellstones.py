@@ -138,110 +138,45 @@ class Line:
 
 
   def swap_stones(self):
-    #begin by iterating through the items in self.line and making sure there are at least 2 tellstones.
-    tellstone_count = 0
-    for index in range(7):
-      if isinstance(self.line[index], Tellstone):
-        tellstone_count += 1
-    if tellstone_count >= 2:
-      #Get the first stone to swap
-      first_stone = input("What is the position of the first stone you would like to swap? ")
-      try:
-        first_stone = int(first_stone)
-      except ValueError:
-        print("Input must be a number!")
-        take_it_back_now_yall()
-        return
-      if first_stone not in range(1,8):
-        print("Please use a number 1-7")
-        take_it_back_now_yall()
-        return
-      #The -1 is to change 1-7 to 0-6 for QoL.
-      if isinstance(self.line[first_stone - 1], Tellstone):
-        first_index = first_stone - 1
-      else:
-        print("There isn't a Tellstone there!")
-        take_it_back_now_yall()
-        return
-      #Get the second stone to swap
-      second_stone = input("What is the position of the other stone you would like to swap? ")
-      try:
-        second_stone = int(second_stone)
-      except ValueError:
-        print("Input must be a number!")
-        take_it_back_now_yall()
-        return
-      if second_stone not in range(1,8):
-        print("Please use a number 1-7")
-        take_it_back_now_yall()
-        return
-      #The -1 is to change 1-7 to 0-6 for QoL.
-      if isinstance(self.line[second_stone - 1], Tellstone):
-        second_index = second_stone - 1
-      else:
-        print("There isn't a Tellstone there!")
-        take_it_back_now_yall()
-        return
-      #Swaps the Tellstones and updates the line.
-      self.line[first_index], self.line[second_index] = self.line[second_index], self.line[first_index]
-      self.line[first_index].mat_location = first_index
-      self.line[second_index].mat_location = second_index
-      self.update_line()
-    else:
-      print("There aren't enough Tellstones to swap.")
-      take_it_back_now_yall()
+    #Get the first stone to swap
+    update_instructions("What is the position of the first stone you would like to swap?")
+    first_stone = position_buttons(hidden = "swap")
+    #Get the second stone to swap
+    update_instructions("What is the position of the second stone you would like to swap?")
+    second_stone = position_buttons(hidden = "swap", stone_index = first_stone)
+    #Swaps the Tellstones and updates the line.
+    self.line[first_stone], self.line[second_stone] = self.line[second_stone], self.line[first_stone]
+    self.line[first_stone].mat_location = first_stone
+    self.line[second_stone].mat_location = second_stone
+    self.update_line()
 
 
-  def find_hidden_count(self):
-    self.hidden_count = 0
-    for item in line.line:
-       if isinstance(item, Tellstone) and item.hidden == True:
-        self.hidden_count += 1
-    return self.hidden_count
 
   def peek(self):
-    #Find how many hidden stones there are
-    #If no hidden stones, end funct
-    if self.find_hidden_count() <= 0:
-      print("There are no hidden stones!")
-      take_it_back_now_yall()
-      return
-    #If line is empty, end funct
-    if self.is_empty():
-      print("There are no hidden stones!")
-      take_it_back_now_yall()
-      return
     #If there wasn't a point last turn, only do position once.
     if next_player.point_last_turn == False:
-      position = False
-      #Asks for position on the line, then check to see if there is a stone there that is hidden.
-      while position == False:
-        position = input("What position would you like to peek at? ")
-        position = self.peek_error_test(position)
-      #The -1's in the line indexs are to change the input 1-7 to the index 0-6. Just for accessibility.
-      if type(self.line[position - 1]) is Tellstone and self.line[position - 1].hidden == True:
-        for second in [3,2,1]:
-          #Dynamically displays a 3 second countdown.
-          print(f"Only {current_player.name} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
-          time.sleep(1)
-        input(f"The stone in position {position} is {self.line[position-1].name}. Press ENTER to continue.")
-      else:
-        print("There either isn't a Tellstone there or it isn't hidden.")
+      update_instructions("What position would you like to look at?")
+      position = position_buttons("peek")
+      for second in [3,2,1]:
+        #Dynamically displays a 3 second countdown.
+        update_instructions(f"Only {current_player.name} should see this! Showing in {second} second(s).")
+        frame.after(1000, clear_window)
+      update_instructions(f"The stone in position {position} is {self.line[position].name}.")
     #If there was a point last turn, you can peek at up to 3 stones.
     if next_player.point_last_turn == True:
-      print(f"{next_player} scored a point last turn, so you can look at up to 3 stones.")
+      update_instructions(f"{next_player} scored a point last turn, so you can look at up to 3 stones.")
       #Ask the user how many stones they want to look at
       how_many_stones = False
-      while how_many_stones == False:
-        how_many_stones = input(f"There are currently {self.hidden_count} face-down stones. How many would you like to peek at (up to three)? ")
-        how_many_stones = self.stones_count_error_test(how_many_stones)
+      #while how_many_stones == False:
+        #how_many_stones = input(f"There are currently {self.hidden_count} face-down stones. How many would you like to peek at (up to three)? ")
+        #how_many_stones = self.stones_count_error_test(how_many_stones)
       position_list = []
       #Ask the user what positions they want to peek at
       for i in range(1,how_many_stones + 1):
         position = False
         while position == False:
           position = input("What position would you like to peek at? ")
-          position = self.peek_error_test(position)
+          #position = self.peek_error_test(position)
         position_list.append(position)
       for second in [3,2,1]:
         #Dynamically displays a 3 second countdown.
@@ -254,35 +189,6 @@ class Line:
       input("Press ENTER to continue.")
     
 
-
-  #Error test functions for the above peek function. Returns false and loops with a While loop if the input is invalid.
-  def stones_count_error_test(self, stones_count):
-    try:
-      stones_count = int(stones_count)
-    except:
-      print("Input must be a number!")
-      return False
-    if stones_count not in range(1,4):
-      print("Please use a number 1-3")
-      return False
-    if stones_count > self.hidden_count:
-      print("There aren't that many hidden stones!")
-      return False
-    else:
-      return stones_count
-  
-  def peek_error_test(self, position):
-    try:
-      position = int(position)
-    except:
-      print("Input must be a number!")
-      return False
-    if position not in range(1,8):
-      print("Please use a number 1-7")
-      return False
-    else:
-      return position
-  #End error test functions
 
   def challenge(self):
     if not self.is_empty():
@@ -329,7 +235,7 @@ class Line:
   def boast(self):
     if self.is_empty():
       return
-    if self.find_hidden_count() <= 0:
+    #if self.find_hidden_count() <= 0:
       print("There are no hidden stones dummy!")
       take_it_back_now_yall()
       return
@@ -519,12 +425,20 @@ global x_spread
 x_spread = 6
 global row
 row = 15
-def position_buttons(hidden=None):
+def position_buttons(hidden=None, stone_index=None, stones_list=[]): #Writes number 1-7 for the 7 postions.
   global x_spread
   global row
   for i in range(7):
     button = tk.Button(frame, text=str(i+1), command=lambda i=i:[advance.set(i)])
     button.grid(padx=x_spread, row=row, column=i, sticky="nsew")
+    if hidden == "swap": #In the swap funct, if the pos isn't a Tellstone, disable
+      if not isinstance(line.line[i], Tellstone) or stone_index == i:
+        button["state"] = "disabled"
+    elif hidden == "peek": #In the peek funct, if the pos isnt hidden, or if the pos has already been choses in the 3 pos peek, disable
+      if not isinstance(line.line[i], Tellstone) or line.line[i].hidden == False or i in stones_list:
+        button["state"] = "disabled"
+
+
   button.wait_variable(advance)
   return advance.get()
 
@@ -584,30 +498,39 @@ def action_buttons(): #This creates and places all of the buttons used for decla
 "Challenge" your opponent to name any face-down stone.
 "Boast" that you know all the face-down stones for an instant victory!"""), advance.set(1), string.set("True")])
   help.grid(padx=x_spread, row=row, column=0, sticky="nsew")
-  stones_list, hidden_stones_list = stones_on_mat()
+
+  stones_list, hidden_stones_list = stones_on_mat() #Get a list the length of either the stones on the mat or the hidden stones.
+
   place = tk.Button(frame, text="Place", command=lambda:[line.add_stone(), advance.set(1)])
   place.grid(padx=x_spread, row=row, column=1, sticky="nsew")
-  if len(stones_list) == 7:
+  if len(stones_list) == 7: #If there are 7 stones on the mat, disable
     place["state"] = "disabled"
+
   hide = tk.Button(frame, text="Hide", command=lambda:[line.hide_stone(), advance.set(1)])
   hide.grid(padx=x_spread, row=row, column=2, sticky="nsew")
-  if len(stones_list) == 0 or len(hidden_stones_list) == 7:
+  if len(stones_list) == 0 or len(hidden_stones_list) == 7: #If there are 0 stones or 7 hidden ones, disable
     hide["state"] = "disabled"
   
   swap = tk.Button(frame, text="Swap", command=lambda:[line.swap_stones(), advance.set(1)])
-  swap.grid(padx=x_spread, row=row, column=3, sticky="nsew")
+  swap.grid(padx=x_spread, row=row, column=3, sticky="nsew") 
+  if len(stones_list) <= 1: #If there is less than 2 stones, disable
+    swap["state"] = "disabled"
 
 
   peek = tk.Button(frame, text="Peek", command=lambda:[line.peek(), advance.set(1)])
   peek.grid(padx=x_spread, row=row, column=4, sticky="nsew")
-
+  if len(hidden_stones_list) == 0: #If there are no hidden stones, disable
+    peek["state"] = "disabled"
 
   challenge = tk.Button(frame, text="Challenge", command=lambda:[line.challenge(), advance.set(1)])
   challenge.grid(padx=x_spread, row=row, column=5, sticky="nsew")
-
+  if len(hidden_stones_list) == 0: #If there are no hidden stones, disable
+    challenge["state"] = "disabled"
 
   boast = tk.Button(frame, text="Boast", command=lambda:[line.boast(), advance.set(1)])
   boast.grid(padx=x_spread, row=row, column=6, sticky="nsew")
+  if len(hidden_stones_list) == 0: #If there are no hidden stones, disable
+    boast["state"] = "disabled"
 
 
   exit = tk.Button(frame, text="Exit", command=lambda:[root.destroy(), advance.set(1)])
