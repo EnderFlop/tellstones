@@ -537,7 +537,7 @@ def hide_buttons(): #This only writes the buttons for the visible stones on the 
       if stone.is_on_mat == True:
         if stone.hidden == False:
           stone_name = stone.name
-          button = tk.Button(frame, text=stone, command=lambda:[string.set(stone_name)])
+          button = tk.Button(frame, text=stone, command=lambda stone_name=stone_name:[string.set(stone_name)])
           button.grid(padx=x_spread, row=row, column=column, sticky= "nsew")
     column += 1
   button.wait_variable(string)
@@ -584,15 +584,16 @@ def action_buttons(): #This creates and places all of the buttons used for decla
 "Challenge" your opponent to name any face-down stone.
 "Boast" that you know all the face-down stones for an instant victory!"""), advance.set(1), string.set("True")])
   help.grid(padx=x_spread, row=row, column=0, sticky="nsew")
-  
+  stones_list, hidden_stones_list = stones_on_mat()
   place = tk.Button(frame, text="Place", command=lambda:[line.add_stone(), advance.set(1)])
   place.grid(padx=x_spread, row=row, column=1, sticky="nsew")
-  
-
+  if len(stones_list) == 7:
+    place["state"] = "disabled"
   hide = tk.Button(frame, text="Hide", command=lambda:[line.hide_stone(), advance.set(1)])
   hide.grid(padx=x_spread, row=row, column=2, sticky="nsew")
-
-
+  if len(stones_list) == 0 or len(hidden_stones_list) == 7:
+    hide["state"] = "disabled"
+  
   swap = tk.Button(frame, text="Swap", command=lambda:[line.swap_stones(), advance.set(1)])
   swap.grid(padx=x_spread, row=row, column=3, sticky="nsew")
 
@@ -616,6 +617,9 @@ def action_buttons(): #This creates and places all of the buttons used for decla
 def update_instructions(string):
   print_string = tk.Label(frame, text=string, background="#5B5956", anchor="w", justify=tk.LEFT)
   print_string.grid(row=row-2, rowspan=1, column=0, columnspan=8, sticky="w")
+
+def stones_on_mat():
+  return ["stone" for stone in line.line if isinstance(stone, Tellstone)], ["hidden stone" for stone in line.line if isinstance(stone, Tellstone) and stone.hidden == True]
 
 global game_over
 game_over = 0
