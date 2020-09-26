@@ -132,12 +132,14 @@ class Line:
     if not self.is_empty():
       #Asks for stone and makes sure it's on the line. If it is, it hides it.
       clear_window()
+      update_instructions("Choose a stone to hide.")
       stone = hide_buttons()
       stone.hide()
       self.update_line()
 
 
   def swap_stones(self):
+    clear_window()
     #Get the first stone to swap
     update_instructions("What is the position of the first stone you would like to swap?")
     first_stone = position_buttons(hidden = "swap")
@@ -157,11 +159,15 @@ class Line:
     if next_player.point_last_turn == False:
       update_instructions("What position would you like to look at?")
       position = position_buttons("peek")
-      for second in [3,2,1]:
-        #Dynamically displays a 3 second countdown.
-        update_instructions(f"Only {current_player.name} should see this! Showing in {second} second(s).")
-        frame.after(1000, clear_window)
-      update_instructions(f"The stone in position {position} is {self.line[position].name}.")
+      clear_window()
+      update_instructions(f"Only {current_player.name} should see this! Press continue when only you are looking.")
+      confirm_button()
+      clear_window()
+      update_instructions(f"The stone in position {position + 1} is {self.line[position].name}.")
+      confirm_button()
+
+#FIX SECOND DYNAMIC DISPLAY ABOVE
+
     #If there was a point last turn, you can peek at up to 3 stones.
     if next_player.point_last_turn == True:
       update_instructions(f"{next_player} scored a point last turn, so you can look at up to 3 stones.")
@@ -437,8 +443,6 @@ def position_buttons(hidden=None, stone_index=None, stones_list=[]): #Writes num
     elif hidden == "peek": #In the peek funct, if the pos isnt hidden, or if the pos has already been choses in the 3 pos peek, disable
       if not isinstance(line.line[i], Tellstone) or line.line[i].hidden == False or i in stones_list:
         button["state"] = "disabled"
-
-
   button.wait_variable(advance)
   return advance.get()
 
@@ -456,6 +460,12 @@ def hide_buttons(): #This only writes the buttons for the visible stones on the 
     column += 1
   button.wait_variable(string)
   return stones_dict[string.get()]
+
+def confirm_button():
+  global row
+  button = tk.Button(frame, text="Continue", command=lambda:[advance.set(1)])
+  button.grid(row=row, column=0, columnspan=8, sticky="nsew")
+  button.wait_variable(advance)
 
 def stone_buttons(hidden=None): #This writes the 7 stones as buttons. It takes an arg, and disables certain buttons accordingly
   column = 0
