@@ -158,41 +158,34 @@ class Line:
     #If there wasn't a point last turn, only do position once.
     if next_player.point_last_turn == False:
       update_instructions("What position would you like to look at?")
-      position = position_buttons("peek")
+      position = position_buttons("peek") #Hides non-Tellstones and visible stones
       clear_window()
       update_instructions(f"Only {current_player.name} should see this! Press continue when only you are looking.")
       confirm_button()
       clear_window()
       update_instructions(f"The stone in position {position + 1} is {self.line[position].name}.")
       confirm_button()
-
-#FIX SECOND DYNAMIC DISPLAY ABOVE
-
     #If there was a point last turn, you can peek at up to 3 stones.
     if next_player.point_last_turn == True:
       update_instructions(f"{next_player} scored a point last turn, so you can look at up to 3 stones.")
-      #Ask the user how many stones they want to look at
-      how_many_stones = False
-      #while how_many_stones == False:
-        #how_many_stones = input(f"There are currently {self.hidden_count} face-down stones. How many would you like to peek at (up to three)? ")
-        #how_many_stones = self.stones_count_error_test(how_many_stones)
-      position_list = []
-      #Ask the user what positions they want to peek at
-      for i in range(1,how_many_stones + 1):
-        position = False
-        while position == False:
-          position = input("What position would you like to peek at? ")
-          #position = self.peek_error_test(position)
-        position_list.append(position)
-      for second in [3,2,1]:
-        #Dynamically displays a 3 second countdown.
-        print(f"Only {current_player.name} should see this! Showing in {second} second(s).\r", sep=" ", end="", flush=True)
-        time.sleep(1)
-      #Displays the stones then waits for an input.
-      print("\n")
-      for index in position_list:
-        print(f"The stone in position {index} is {self.line[index - 1]}.")
-      input("Press ENTER to continue.")
+      confirm_button()
+      _, hidden_stones = stones_on_mat() #Getting list of current hidden stones. Only second return is neccesary, "_" is a dummy
+      num_hidden_stones = len(hidden_stones) #Number of hidden stones
+      if num_hidden_stones > 3: #If there is more than 3, still only do 3
+        num_hidden_stones = 3
+      position_list = [] #List where the positions of chosen stones is stored
+      position_string = "" #String printed at the end listing the positions and their stones
+      for i in range(1,num_hidden_stones+1):
+        clear_window()
+        update_instructions(f"What position would you like to peek at? (Peek number {i})")
+        position = position_buttons("peek", stones_list=position_list) #Hides non-Tellstones, visible stones, and stones already chosen
+        position_list.append(position) #Adds the position chosen to the position_list
+        position_string += f"The stone in position {position+1} is {line.line[position]}.\n" #Adds the stone and pos to the string
+      update_instructions(f"Only {current_player.name} should see this! Press continue when only you are looking.") #Confirmation
+      confirm_button()
+      clear_window()
+      update_instructions(position_string) #Prints the string of stones
+      confirm_button()
     
 
 
@@ -518,7 +511,7 @@ def action_buttons(): #This creates and places all of the buttons used for decla
 
   hide = tk.Button(frame, text="Hide", command=lambda:[line.hide_stone(), advance.set(1)])
   hide.grid(padx=x_spread, row=row, column=2, sticky="nsew")
-  if len(stones_list) == 0 or len(hidden_stones_list) == 7: #If there are 0 stones or 7 hidden ones, disable
+  if len(stones_list) == 0 or len(hidden_stones_list) == len(stones_list): #If there are 0 stones or all the stones are hidden, disable
     hide["state"] = "disabled"
   
   swap = tk.Button(frame, text="Swap", command=lambda:[line.swap_stones(), advance.set(1)])
