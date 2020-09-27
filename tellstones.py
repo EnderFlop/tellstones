@@ -1,8 +1,4 @@
-import time
-import os
-from sys import exit
 import tkinter as tk
-from tkinter import ttk
 
 #Initalizing tkinter
 root = tk.Tk() #Init frame
