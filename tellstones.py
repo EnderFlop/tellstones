@@ -208,133 +208,114 @@ class Line:
         confirm_button()
 
   def boast(self):
-    if self.is_empty():
-      return
-    #if self.find_hidden_count() <= 0:
-      print("There are no hidden stones dummy!")
-      take_it_back_now_yall()
-      return
-    print(f"""{current_player} thinks they know all the face down stones! How do you repsond {next_player}?
+    clear_window()
+    update_instructions(f"""{current_player} thinks they know all the face down stones! How do you repsond {next_player}?
     "Doubt" that they know all the pieces. If they name them all correctly, they instantly win. If they don't, you do!
     "Believe" that they probably do know all the pieces. This gives them one point, and they don't have to guess anything.
     "Boast" that YOU know all the pieces, and force {current_player} to either doubt or believe you.
     """)
-    response = False
-    while response == False:
-      response = input("")
-      response = self.boast_error_check(response)
-    
+    response = boast_buttons()
     #This is the big boy function.
     if response == "doubt":
-      print(f"{next_player} doesn't believe you know all the pieces {current_player}! Now you have to prove you do!")
+      clear_window()
+      update_instructions(f"{next_player} doesn't believe you know all the pieces {current_player}! Now you have to prove you do!")
+      confirm_button()
       #Create list of hidden stone indexes
       hidden_list = [stone.mat_location for stone in self.line if isinstance(stone, Tellstone) and stone.hidden == True]
-      print(self)
       correct_count = 0
       #For each index in the list
       for stone_index in hidden_list:
         #Get a guess from the user on what stone is in that position
-        stone_guess = input(f"The Tellstone in position {stone_index + 1} is: ")
-        stone_guess = stone_guess.lower()
-        #If the guess is in the stone dictionary
-        if stone_guess in stones_dict.keys():
-          stone_guess = stones_dict[stone_guess]
+        clear_window()
+        if correct_count == 0:
+          update_instructions(f"The Tellstone in position {stone_index + 1} is: ") #If it's the first time, just ask the stone
+        else:
+          update_instructions(f"Correct!\nThe Tellstone in position {stone_index + 1} is: ") #If it's the second time, tell them they were right, then ask the stone
+        stone_guess = stone_buttons()
         if self.line[stone_index] == stone_guess:
           #Print correct and update the line so that stone is now visible. Reprint the line and add 1 to correct_count
-          print("Correct!")
+          clear_window()
           self.line[stone_index].hidden = False
           self.update_line()
           correct_count += 1
-          print(self)
         #Otherwise, end the game. Reveal all stones, print the line, and give the other player an absurd amount of points to rub it in.
         else:
-          input(f"\n\nTough luck. That Tellstone was {self.line[stone_index]}. {next_player} wins! Press ENTER to continue.\n\n")
+          clear_window()
+          update_instructions(f"Tough luck.\nThat Tellstone was {self.line[stone_index]}.\n{next_player} wins!!!")
           for value in stones_dict.values():
             value.hidden = False
           self.update_line()
-          for i in range(9000):
-            next_player.gain_point()
+          next_player.points = 9001
+          confirm_button()
           break
       #If you manage to get them all right, you get a stupid amount of points and you win automatically.
       if correct_count == len(hidden_list):
-        input(f"\n\nAmazing! {current_player} got them all right! They win! Press ENTER to continue.\n\n")
-        for i in range(9000):
-          current_player.gain_point()
+        clear_window()
+        update_instructions(f"Amazing!!!\n{current_player} got them all right!\nThey win!!!")
+        current_player.points = 9001
+        confirm_button()
     
     if response == "believe":
-      print(f"{next_player} believes that {current_player} knows where all the pieces are, and gives up a point.")
+      clear_window()
+      update_instructions(f"{next_player} believes that {current_player} knows where all the pieces are, and gives up a point.")
       current_player.gain_point()
-      input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
-
+      confirm_button()
 
 
     #This is a sort of recursion, where next player counters with another boast, and two more options are presented.
     if response == "boast":
-      print(f"{next_player} counters with their own boast!")
-      print(f"""{current_player}, you can either:
+      clear_window()
+      update_instructions(f"""Unbelievable! {next_player} counters with their own boast!
+    {current_player}, you can either:
     "Doubt" that they know all the pieces. If they name them all correctly, they instantly win. If they don't, you do!
     "Believe" that they probably do know all the pieces. This gives them one point, and they don't have to guess anything.
     """)
-      response = False
-      while response == False:
-        response = input("")
-        response = self.boast_error_check(response)
-  
+      response = boast_buttons(reverse=True)
       if response == "doubt":
-        print(f"{current_player} doesn't believe you know all the pieces {next_player}! Time to put your points where your mouth is.")
+        clear_window()
+        update_instructions(f"{current_player} doesn't believe you know all the pieces {next_player}! Now you have to prove you do!")
+        confirm_button()
         #Create list of hidden stone indexes
         hidden_list = [stone.mat_location for stone in self.line if isinstance(stone, Tellstone) and stone.hidden == True]
-        print(self)
         correct_count = 0
         #For each index in the list
         for stone_index in hidden_list:
           #Get a guess from the user on what stone is in that position
-          stone_guess = input(f"The Tellstone in position {stone_index + 1} is: ")
-          stone_guess = stone_guess.lower()
-          #If the guess is in the stone dictionary
-          if stone_guess in stones_dict.keys():
-            stone_guess = stones_dict[stone_guess]
+          clear_window()
+          if correct_count == 0:
+            update_instructions(f"The Tellstone in position {stone_index + 1} is: ") #If it's the first time, just ask the stone
+          else:
+            update_instructions(f"Correct!\nThe Tellstone in position {stone_index + 1} is: ") #If it's the second time, tell them they were right, then ask the stone
+          stone_guess = stone_buttons()
           if self.line[stone_index] == stone_guess:
             #Print correct and update the line so that stone is now visible. Reprint the line and add 1 to correct_count
-            print("Correct!")
+            clear_window()
             self.line[stone_index].hidden = False
             self.update_line()
             correct_count += 1
-            print(self)
           #Otherwise, end the game. Reveal all stones, print the line, and give the other player an absurd amount of points to rub it in.
           else:
-            input(f"\n\nTough luck. That Tellstone was {self.line[stone_index]}. {current_player} wins! Press ENTER to continue.\n\n")
+            clear_window()
+            update_instructions(f"Tough luck.\nThat Tellstone was {self.line[stone_index]}.\n{current_player} wins!!!")
             for value in stones_dict.values():
               value.hidden = False
             self.update_line()
-            for i in range(9000):
-              current_player.gain_point()
+            current_player.points = 9001
+            confirm_button()
             break
         #If you manage to get them all right, you get a stupid amount of points and you win automatically.
         if correct_count == len(hidden_list):
-          input(f"\n\nAmazing! {next_player} got them all right! They win! Press ENTER to continue.\n\n")
-          for i in range(9000):
-            next_player.gain_point()
+          clear_window()
+          update_instructions(f"Amazing!!!\n{next_player} got them all right!\nThey win!!!")
+          next_player.points = 9001
+          confirm_button()
       
       if response == "believe":
-        print(f"{current_player} believes that {next_player} knows where all the pieces are, and gives up a point.")
+        clear_window()
         next_player.gain_point()
-        input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
+        update_instructions(f"{current_player} believes that {next_player} knows where all the pieces are, and gives up a point.")
+        confirm_button()
 
-
-  def boast_error_check(self, input):
-    try:
-      input = int(input)
-      print("Not a valid option. Try again.")
-      return False
-    except:
-      input = input.lower()
-      if input == "doubt" or input == "believe" or input == "boast":
-        return input
-      else:
-        print("Not a valid option. Try again.")
-        return False
-      
 
 class Player:
   def __init__(self, name):
@@ -400,6 +381,7 @@ global x_spread
 x_spread = 6
 global row
 row = 15
+
 def position_buttons(hidden=None, stone_index=None, stones_list=[]): #Writes number 1-7 for the 7 postions.
   global x_spread
   global row
@@ -414,6 +396,26 @@ def position_buttons(hidden=None, stone_index=None, stones_list=[]): #Writes num
         button["state"] = "disabled"
   button.wait_variable(advance)
   return advance.get()
+
+def boast_buttons(reverse=False): #If the user decided to boast back, reverse is set to true and the boast button is not drawn
+  global x_spread
+  global row
+  if reverse == False: 
+    columnspread = 3 #If you have to draw 3 buttons, only strech across 3 columns, else 4
+    column = 3 #Places "believe" differently based on amount of buttons drawn
+  else:
+    columnspread = 4
+    column = 4
+  doubt = tk.Button(frame, text="Doubt", command=lambda:[string.set("doubt")])
+  doubt.grid(padx=x_spread, row=row, column=0, columnspan=columnspread, sticky="nesw")
+  believe = tk.Button(frame, text="Believe", command=lambda:[string.set("believe")])
+  believe.grid(padx=x_spread, row=row, column=column, columnspan=columnspread, sticky="nesw")
+  if reverse == False:
+    boast = tk.Button(frame, text="Boast", command=lambda:[string.set("boast")])
+    boast.grid(padx=x_spread, row=row, column=6, columnspan=columnspread, sticky="nesw")
+  doubt.wait_variable(string)
+  return string.get()
+
 
 def hide_buttons(): #This only writes the buttons for the visible stones on the line in their positions, so as not to give away any hints.
   column = 0
@@ -463,6 +465,17 @@ def left_right_buttons(): #These are the buttons that let you choose left or rig
     right["state"] = "disabled"
   left.wait_variable(string)
   return string.get()
+
+def play_again_buttons():
+  global x_spread
+  global row
+  yes = tk.Button(frame, text="Yes", command=lambda:[string.set("yes")])
+  yes.grid(padx=x_spread, row=row, column=0, sticky="nsew", columnspan=4)
+  no = tk.Button(frame, text="No", command=lambda:[string.set("no")])
+  no.grid(padx=x_spread, row=row, column=4, sticky="nsew", columnspan=4)
+  yes.wait_variable(string)
+  return string.get()
+
 
 def action_buttons(): #This creates and places all of the buttons used for declaring your first action. Also follows logic to disable unusable buttons
   global x_spread
@@ -590,9 +603,10 @@ def clear_window():
 while game_over == 0:
   gameplay_loop()
   if game_over == 1:
-    play_again = input("Thank you for playing! Play again (y/n)? ")
-    play_again = play_again.lower()
-    if play_again == "y":
+    clear_window()
+    update_instructions("Thank you for playing! Play again?")
+    play_again = play_again_buttons()
+    if play_again == "yes":
       #This is probably a shit way to do this but I hope it works.
       #Reinitalizing all the classes in order to reset them to default states.
       #Initalizing all the stones
@@ -615,4 +629,4 @@ while game_over == 0:
       player_turn = 0
       game_over = 0
     else:
-      print("Goodbye!")
+      root.destroy()
