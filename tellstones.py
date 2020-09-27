@@ -62,9 +62,8 @@ class Line:
     return (f"The line is currently:\n{self.string}")
 
   def is_empty(self):
-    if self.string == " .  .  .  .  .  .  . ":
-      print("The line is empty!")
-      take_it_back_now_yall()
+    stones_count, _ = stones_on_mat()
+    if len(stones_count) == 0:
       return True
     return False
 
@@ -91,7 +90,7 @@ class Line:
     clear_window()
     update_instructions("Select a Tellstone to place on the line.")
     stone = stone_buttons("place")
-    if self.string == " .  .  .  .  .  .  . ":
+    if self.is_empty():
       location = 3
       self.line[location] = stone
       stone.add_to_line(location)
@@ -108,8 +107,6 @@ class Line:
           stone.add_to_line(self.furthest_left - 1)
           self.furthest_left -= 1
           self.update_line()
-        else:
-          take_it_back_now_yall()
       #If it's right, add it to the right and move self.furthest_right to the right by 1. Check to see if there is space.
       elif left_or_right == "Right":
         if self.furthest_right < 6:
@@ -117,18 +114,15 @@ class Line:
           stone.add_to_line(self.furthest_right + 1)
           self.furthest_right += 1
           self.update_line()
-        else:
-          take_it_back_now_yall()
 
   
   def hide_stone(self):
-    if not self.is_empty():
-      #Asks for stone and makes sure it's on the line. If it is, it hides it.
-      clear_window()
-      update_instructions("Choose a stone to hide.")
-      stone = hide_buttons()
-      stone.hide()
-      self.update_line()
+    #Asks for stone and makes sure it's on the line. If it is, it hides it.
+    clear_window()
+    update_instructions("Choose a stone to hide.")
+    stone = hide_buttons()
+    stone.hide()
+    self.update_line()
 
 
   def swap_stones(self):
@@ -183,25 +177,24 @@ class Line:
 
 
   def challenge(self):
-    if not self.is_empty():
-      #Asks for position on the line, then check to see if there is a stone there that is hidden.
-      clear_window()
-      update_instructions(f"What position are you challenging {next_player} to name?")
-      position = position_buttons(hidden="peek") #The peek draw funct also works for challenge's purpose
-      clear_window()
-      update_instructions(f"Ok {next_player}, what Tellstone do you think is there?")
-      opponent_guess = stone_buttons() #This was originally (not hidden = disabled) but it's really funny to see someone pick a stone that is visible so
-      clear_window()
-      self.line[position].hidden = False #Shows stone and updates line
-      self.update_line()
-      if opponent_guess == line.line[position]: #If correct
-        next_player.gain_point()
-        update_instructions(f"Correct! Your guess, and the token at position {position}, is {line.line[position]}.\n{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points.")
-        confirm_button()
-      else: #If incorrect
-        current_player.gain_point()
-        update_instructions(f"Ooh, tough luck. The token in position {position} was actually {line.line[position]}.\n{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points.")
-        confirm_button()
+    #Asks for position on the line, then check to see if there is a stone there that is hidden.
+    clear_window()
+    update_instructions(f"What position are you challenging {next_player} to name?")
+    position = position_buttons(hidden="peek") #The peek draw funct also works for challenge's purpose
+    clear_window()
+    update_instructions(f"Ok {next_player}, what Tellstone do you think is there?")
+    opponent_guess = stone_buttons() #This was originally (not hidden = disabled) but it's really funny to see someone pick a stone that is visible so
+    clear_window()
+    self.line[position].hidden = False #Shows stone and updates line
+    self.update_line()
+    if opponent_guess == line.line[position]: #If correct
+      next_player.gain_point()
+      update_instructions(f"Correct! Your guess, and the token at position {position}, is {line.line[position]}.\n{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points.")
+      confirm_button()
+    else: #If incorrect
+      current_player.gain_point()
+      update_instructions(f"Ooh, tough luck. The token in position {position} was actually {line.line[position]}.\n{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points.")
+      confirm_button()
 
   def boast(self):
     clear_window()
