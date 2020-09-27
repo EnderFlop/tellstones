@@ -25,9 +25,6 @@ string = tk.StringVar() #Same as advance, but a string
 #ROW 15 is the buttons home
 
 
-#Initalizing console clearer function.
-clear = lambda: os.system("cls")
-
 class Tellstone:
   def __init__(self, name):
     self.name = name
@@ -192,44 +189,23 @@ class Line:
   def challenge(self):
     if not self.is_empty():
       #Asks for position on the line, then check to see if there is a stone there that is hidden.
-      position = input(f"Which position stone are you challenging {next_player} to name? ")
-      try:
-        position = int(position)
-        #real_index is the true index of the Tellstone.
-        real_index = position - 1
-      except ValueError:
-        print("Input must be a number!")
-        take_it_back_now_yall()
-        return
-      if position not in range(1,8):
-        print("Please use a number 1-7")
-        take_it_back_now_yall()
-        return
-      elif not self.line[real_index].hidden:
-        print("That Tellstone isn't hidden!")
-        take_it_back_now_yall()
-        return
-      elif self.line[real_index] == " . ":
-        print("There isn't a Tellstone there.")
-        take_it_back_now_yall()
-        return
-      opponent_guess = input(f"Alright {next_player.name}, what stone do you think is in that postion? ")
-      opponent_guess = opponent_guess.lower()
-      if opponent_guess in stones_dict.keys():
-        opponent_guess = stones_dict[opponent_guess]
-      if opponent_guess == line.line[real_index]:
-        print(f"Correct! Your guess, and the token at position {position}, is {line.line[real_index]}.")
-        next_player.points += 1
-        input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
-        #next line is redundant because the value is set to False as soon as their turn starts. There is nothing in the game for if YOU scored a point last turn.
-        #next.player.point_last_turn = True
-      else:
-        print(f"Ooh, tough luck. The token in position {position} was actually {line.line[real_index]}.")
-        current_player.gain_point()
-        input(f"{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points. Press ENTER to continue.")
-      self.line[real_index].hidden = False
+      clear_window()
+      update_instructions(f"What position are you challenging {next_player} to name?")
+      position = position_buttons(hidden="peek") #The peek draw funct also works for challenge's purpose
+      clear_window()
+      update_instructions(f"Ok {next_player}, what Tellstone do you think is there?")
+      opponent_guess = stone_buttons() #This was originally (not hidden = disabled) but it's really funny to see someone pick a stone that is visible so
+      clear_window()
+      self.line[position].hidden = False #Shows stone and updates line
       self.update_line()
-
+      if opponent_guess == line.line[position]: #If correct
+        next_player.gain_point()
+        update_instructions(f"Correct! Your guess, and the token at position {position}, is {line.line[position]}.\n{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points.")
+        confirm_button()
+      else: #If incorrect
+        current_player.gain_point()
+        update_instructions(f"Ooh, tough luck. The token in position {position} was actually {line.line[position]}.\n{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points.")
+        confirm_button()
 
   def boast(self):
     if self.is_empty():
@@ -433,7 +409,7 @@ def position_buttons(hidden=None, stone_index=None, stones_list=[]): #Writes num
     if hidden == "swap": #In the swap funct, if the pos isn't a Tellstone, disable
       if not isinstance(line.line[i], Tellstone) or stone_index == i:
         button["state"] = "disabled"
-    elif hidden == "peek": #In the peek funct, if the pos isnt hidden, or if the pos has already been choses in the 3 pos peek, disable
+    elif hidden == "peek": #In the peek funct, if the pos isnt hidden, or if the pos has already been choses in the 3 pos peek, disable. Also used for Challenge
       if not isinstance(line.line[i], Tellstone) or line.line[i].hidden == False or i in stones_list:
         button["state"] = "disabled"
   button.wait_variable(advance)
@@ -454,7 +430,7 @@ def hide_buttons(): #This only writes the buttons for the visible stones on the 
   button.wait_variable(string)
   return stones_dict[string.get()]
 
-def confirm_button():
+def confirm_button(): #Simple funct that draws a massive continue button. Just used to show instuctional text and wait for user to understand.
   global row
   button = tk.Button(frame, text="Continue", command=lambda:[advance.set(1)])
   button.grid(row=row, column=0, columnspan=8, sticky="nsew")
@@ -467,7 +443,7 @@ def stone_buttons(hidden=None): #This writes the 7 stones as buttons. It takes a
   for name, value in stones_dict.items():
     button = tk.Button(frame, text=name, command=lambda name=name:[string.set(name)])
     button.grid(padx=x_spread, row=row, column=column, sticky="nsew")
-    if hidden == "place":
+    if hidden == "place": #If it's already on the mat, disable
       if value.is_on_mat == True:
         button["state"] = "disabled"
     column += 1
@@ -575,12 +551,12 @@ def gameplay_loop():
     next_player = player_one
   #Check to see if a player has won
   if current_player.points >= 3:
-    clear()
-    print(f"Game over! {current_player.name} reached {current_player.points} points!")
+    clear_window()
+    update_instructions(f"Game over! {current_player.name} reached {current_player.points} points!")
     game_over = 1
   if next_player.points >= 3:
-    clear()
-    print(f"Game over! {next_player.name} reached {next_player.points} points!")
+    clear_window()
+    update_instructions(f"Game over! {next_player.name} reached {next_player.points} points!")
     game_over = 1
   #Reset var for input loop.
   if game_over == 0:
