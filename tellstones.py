@@ -368,13 +368,6 @@ def player_turn_advance():
   global player_turn
   player_turn += 1
 
-#For if a player messes up an input, it doesnt advance the turn.
-def take_it_back_now_yall():
-  input("Press ENTER to continue.")
-  global player_turn
-  player_turn -= 1
-
-
 
 #      ::BUTTON DRAW FUNCTIONS BELOW::
 global x_spread
@@ -577,8 +570,9 @@ def gameplay_loop():
     background_label.grid(row=row-1, column=0, rowspan=2, columnspan=8, sticky="news")
     label = tk.Label(frame, text=f"What would you like to do {current_player}? You have {current_player.points} points. {next_player} has {next_player.points} points.", bg="#787774")
     label.grid(row=row-1, column=0, columnspan=8, sticky="new")
-    action_buttons()
-    if string.get() != "True": #If "Help" was the last action, don't clear the console. This gives the user a chance to read the text.
+    action_buttons() #Draws action buttons and processes action
+    if string.get() != "True": #If "Help" was the last action, don't clear the console, give the user chance to read text. Also skips the player turn advance, meaning help doesn't take your turn
+      player_turn_advance() #Moves turn to next player
       clear_window()
 
 
@@ -604,6 +598,12 @@ while game_over == 0:
   gameplay_loop()
   if game_over == 1:
     clear_window()
+    #Update points
+    background_label = tk.Label(frame, bg="#787774")
+    background_label.grid(row=row-1, column=0, rowspan=2, columnspan=8, sticky="news")
+    label = tk.Label(frame, text=f"{current_player} ended with {current_player.points} points. {next_player} ended with {next_player.points} points.", bg="#787774")
+    label.grid(row=row-1, column=0, columnspan=8, sticky="new")
+
     update_instructions("Thank you for playing! Play again?")
     play_again = play_again_buttons()
     if play_again == "yes":
