@@ -1,4 +1,5 @@
 import tkinter as tk
+import itertools
 
 #Initalizing tkinter
 root = tk.Tk() #Init frame
@@ -22,11 +23,12 @@ string = tk.StringVar() #Same as advance, but a string
 
 
 class Tellstone:
-  def __init__(self, name):
+  def __init__(self, name, emoji):
     self.name = name
     self.hidden = False
     self.is_on_mat = False
     self.mat_location = None
+    self.emoji = emoji
 
 
   def __str__(self):
@@ -69,21 +71,48 @@ class Line:
 
   #Updates self.string based on the current state of self.line
   def update_line(self):
-    #Starts by resetting self.string
-    self.string = ""
-    #Iterates 7 times for the 7 spaces
-    for i in range(7):
-      #If the index is a Tellstone
-      if type(self.line[i]) == Tellstone:
-        #and it isn't hidden, add the name of the stone
-        if self.line[i].hidden == False:
-          self.string += " " + str(self.line[i]) + " "
-        #if it is hidden, add the word "stone"
-        if self.line[i].hidden == True:
-          self.string += " Stone "
-      #If it's not a Tellstone, just add a period to mark an empty spot
-      else:
-        self.string += " . "
+    self.string = "" #Start by resetting string
+    for i in range(7): #Iterate 7 times for 7 spaces
+      space = self.line[i]
+      if isinstance(space, Tellstone): #If tellstone
+        if space.hidden == False: #And isn't hidden
+          self.string += f"""
+        *      *          
+     *                 *       
+    *        {space.emoji}         *      
+    *                      *      
+     *                 *       
+        *      *          
+          """
+        if space.hidden == True:
+          self.string += """
+        *      *          
+     *                 *       
+    *                      *      
+    *                      *      
+     *                 *       
+        *      *          
+          """
+
+
+
+  #Old update string with periods and words below
+  #def update_line(self):
+  #  #Starts by resetting self.string
+  #  self.string = ""
+  #  #Iterates 7 times for the 7 spaces
+  #  for i in range(7):
+  #    #If the index is a Tellstone
+  #    if type(self.line[i]) == Tellstone:
+  #      #and it isn't hidden, add the name of the stone
+  #      if self.line[i].hidden == False:
+  #        self.string += " " + str(self.line[i]) + " "
+  #      #if it is hidden, add the word "stone"
+  #      if self.line[i].hidden == True:
+  #        self.string += " Stone "
+  #    #If it's not a Tellstone, just add a period to mark an empty spot
+  #    else:
+  #      self.string += " . "
 
   
   def add_stone(self):
@@ -320,13 +349,13 @@ class Player:
 
 
 #Initalizing all the stones
-crown = Tellstone("The Crown")
-shield = Tellstone("The Shield")
-sword = Tellstone("The Sword")
-flag = Tellstone("The Flag")
-knight = Tellstone("The Knight")
-hammer = Tellstone("The Hammer")
-scales = Tellstone("The Scales")
+crown = Tellstone("The Crown", "\U0001F451")
+shield = Tellstone("The Shield", "\U0001F6E1")
+sword = Tellstone("The Sword", "\U00002694")
+flag = Tellstone("The Flag", "\U0001F3C1")
+knight = Tellstone("The Knight", "\U00002658")
+hammer = Tellstone("The Hammer", "\U0001F528")
+scales = Tellstone("The Scales", "\U00002696")
 
 #Initalizing dict of strings to class names:
 stones_dict = {
@@ -338,6 +367,7 @@ stones_dict = {
   "The Hammer": hammer,
   "The Scales": scales,
 }
+
 
 
 #Initalizing Line and updating it to make self.list and self.string have the correct values for an empty board.
@@ -533,8 +563,8 @@ def gameplay_loop():
   global next_player
   #Vars for button setup
   #Clear and print the line
-  visible_line = tk.Label(frame, text=line, bg="#5B5956")
-  visible_line.grid(row=0, rowspan=10, column=0, columnspan=8, sticky="ew")
+  visible_line = tk.Label(frame, text=line, bg="#5B5956", font=40)
+  visible_line.grid(row=0, rowspan=13, column=0, columnspan=8, sticky="new")
   #Alternate player turns and turn their point_last_turn value to False.
   if player_turn % 2 == 0:
     current_player = player_one
@@ -599,13 +629,13 @@ while game_over == 0:
       #This is probably a shit way to do this but I hope it works.
       #Reinitalizing all the classes in order to reset them to default states.
       #Initalizing all the stones
-      crown = Tellstone("The Crown")
-      shield = Tellstone("The Shield")
-      sword = Tellstone("The Sword")
-      flag = Tellstone("The Flag")
-      knight = Tellstone("The Knight")
-      hammer = Tellstone("The Hammer")
-      scales = Tellstone("The Scales")
+      crown = Tellstone("The Crown", "\U0001F451")
+      shield = Tellstone("The Shield", "\U0001F6E1")
+      sword = Tellstone("The Sword", "\U00002694")
+      flag = Tellstone("The Flag", "\U0001F3C1")
+      knight = Tellstone("The Knight", "\U00002658")
+      hammer = Tellstone("The Hammer", "\U0001F528")
+      scales = Tellstone("The Scales", "\U00002696")
 
       #Initalizing Line and updating it to make self.list and self.string have the correct values for an empty board.
       line = Line()
