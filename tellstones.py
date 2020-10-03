@@ -1,4 +1,5 @@
 import tkinter as tk
+from PIL import ImageTk,Image
 
 #Initalizing tkinter
 root = tk.Tk() #Init parent window
@@ -6,9 +7,9 @@ root.title("Tellstones") #Parent title
 root.resizable(False,False) #Non-resizable
 root.geometry("1250x500") #Parent size #Init parent grid
 mat = tk.Canvas(root, width=1250, height=300, background="#096095") #Size and background color for line
-mat.grid(row=0, column=0)
+mat.grid(row=0, column=0) #Placing mat on the parent
 frame = tk.Frame(root, width=1250, height=200, background="#5B5956") #Size and background color for button frame
-frame.grid(row=1, column=0, sticky="nesw") #Init grid
+frame.grid(row=1, column=0, sticky="nesw") #Placing frame on the parent
 for y in range(4): #Init rows 0-3 for filling
   frame.grid_rowconfigure(y, weight=1)
 for x in range(8): #Init columns 0-7 for buttons
@@ -24,12 +25,14 @@ string = tk.StringVar() #Same as advance, but a string
 
 
 class Tellstone:
-  def __init__(self, name, emoji):
+  def __init__(self, name):
     self.name = name
     self.hidden = False
     self.is_on_mat = False
     self.mat_location = None
-    self.emoji = emoji
+    imagename = self.name.replace(" ","") #Removes the space in the name
+    imagename = imagename.lower() #Lowercases it
+    self.image = "tellstone" + imagename +".png" #Translates it to the png string
 
 
   def __str__(self):
@@ -59,6 +62,10 @@ class Line:
     #The first stone will be placed in the middle, so set the current bounds to the middle of the list
     self.furthest_left = 3
     self.furthest_right = 3
+    #Images must be defined as part of the function to circumvent garbage collection and deletion
+    self.matbase = ImageTk.PhotoImage(Image.open("tellstonesMat.png"))
+    self.emptyspace = ImageTk.PhotoImage(Image.open("tellstoneEmpty.png"))
+    self.hiddenstone = ImageTk.PhotoImage(Image.open("tellstoneHidden.png"))
 
 
   def __repr__(self):
@@ -70,32 +77,23 @@ class Line:
       return True
     return False
 
-  #Updates self.string based on the current state of self.line
   def update_line(self):
-    self.string = "" #Start by resetting string
-    for i in range(7): #Iterate 7 times for 7 spaces
-      space = self.line[i]
-      if isinstance(space, Tellstone): #If tellstone
-        if space.hidden == False: #And isn't hidden
-          self.string += f"""
-        *      *          
-     *                 *       
-    *        {space.emoji}         *      
-    *                      *      
-     *                 *       
-        *      *          
-          """
-        if space.hidden == True:
-          self.string += """
-        *      *          
-     *                 *       
-    *                      *      
-    *                      *      
-     *                 *       
-        *      *          
-          """
-
-
+    mat.delete("all") #Clears canvas for redrawing
+    mat.create_image(0, 0, anchor="nw", image=self.matbase)
+    for i in range(7): #Go through 7 times for the 7 places
+      #Anchor is NW, so the full width of the stone (100) and the gap inbetween (60) must be multiplied
+      #by i in and added to the original 75 (plus 20 for border margin) gap from the mat.
+      current_x_value = (95 + 160*i)
+      if isinstance(self.line[i], Tellstone): #If it's a tellstone
+        if self.line[i].hidden == False: #And it's not hidden
+          #Create image of blank tellstone, then put sprite on top
+          mat.create_image(current_x_value, 100, anchor="nw", image=self.hiddenstone)
+          mat.create_image(current_x_value, 100, anchor="nw", image=self.line[i].image)
+        else:
+          #If tellstone but not hidden, CreateImage of hidden tellstone
+          mat.create_image(current_x_value, 100, anchor="nw", image=self.hiddenstone)
+      else:
+        mat.create_image(current_x_value, 100, anchor="nw", image=self.emptyspace)
 
   #Old update string with periods and words below
   #def update_line(self):
@@ -350,13 +348,13 @@ class Player:
 
 
 #Initalizing all the stones
-crown = Tellstone("The Crown", "\U0001F451")
-shield = Tellstone("The Shield", "\U0001F6E1")
-sword = Tellstone("The Sword", "\U00002694")
-flag = Tellstone("The Flag", "\U0001F3C1")
-knight = Tellstone("The Knight", "\U00002658")
-hammer = Tellstone("The Hammer", "\U0001F528")
-scales = Tellstone("The Scales", "\U00002696")
+crown = Tellstone("The Crown")
+shield = Tellstone("The Shield")
+sword = Tellstone("The Sword")
+flag = Tellstone("The Flag")
+knight = Tellstone("The Knight")
+hammer = Tellstone("The Hammer")
+scales = Tellstone("The Scales")
 
 #Initalizing dict of strings to class names:
 stones_dict = {
@@ -630,13 +628,13 @@ while game_over == 0:
       #This is probably a shit way to do this but I hope it works.
       #Reinitalizing all the classes in order to reset them to default states.
       #Initalizing all the stones
-      crown = Tellstone("The Crown", "\U0001F451")
-      shield = Tellstone("The Shield", "\U0001F6E1")
-      sword = Tellstone("The Sword", "\U00002694")
-      flag = Tellstone("The Flag", "\U0001F3C1")
-      knight = Tellstone("The Knight", "\U00002658")
-      hammer = Tellstone("The Hammer", "\U0001F528")
-      scales = Tellstone("The Scales", "\U00002696")
+      crown = Tellstone("The Crown")
+      shield = Tellstone("The Shield")
+      sword = Tellstone("The Sword")
+      flag = Tellstone("The Flag")
+      knight = Tellstone("The Knight")
+      hammer = Tellstone("The Hammer")
+      scales = Tellstone("The Scales")
 
       #Initalizing Line and updating it to make self.list and self.string have the correct values for an empty board.
       line = Line()
