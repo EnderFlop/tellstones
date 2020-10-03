@@ -1,13 +1,15 @@
 import tkinter as tk
-import itertools
 
 #Initalizing tkinter
-root = tk.Tk() #Init frame
-root.title("Tellstones") #Frame title
+root = tk.Tk() #Init parent window
+root.title("Tellstones") #Parent title
 root.resizable(False,False) #Non-resizable
-frame = tk.Frame(root, width=1280, height=500, background="#5B5956") #Size and background color
-frame.grid(row=0, column=0, sticky="nesw") #Init grid
-for y in range(16): #Init rows 0-15 for filling
+root.geometry("1250x500") #Parent size #Init parent grid
+mat = tk.Canvas(root, width=1250, height=300, background="#096095") #Size and background color for line
+mat.grid(row=0, column=0)
+frame = tk.Frame(root, width=1250, height=200, background="#5B5956") #Size and background color for button frame
+frame.grid(row=1, column=0, sticky="nesw") #Init grid
+for y in range(4): #Init rows 0-3 for filling
   frame.grid_rowconfigure(y, weight=1)
 for x in range(8): #Init columns 0-7 for buttons
   frame.grid_columnconfigure(x, weight=1)
@@ -16,10 +18,9 @@ advance = tk.IntVar() #Var to track user input and return
 string = tk.StringVar() #Same as advance, but a string
 
 #ROW FORMATTING
-#ROW 0-X is the tellstone line
-#ROW X-14 is the task prompt.
-#ROW 14 is the point tracker
-#ROW 15 is the buttons home
+#Row 0 is the instruction text
+#Row 1 is the score display
+#Row 2 is the buttons draw
 
 
 class Tellstone:
@@ -392,7 +393,7 @@ def player_turn_advance():
 global x_spread
 x_spread = 6
 global row
-row = 15
+row = 3
 
 def position_buttons(hidden=None, stone_index=None, stones_list=[]): #Writes number 1-7 for the 7 postions.
   global x_spread
@@ -563,8 +564,8 @@ def gameplay_loop():
   global next_player
   #Vars for button setup
   #Clear and print the line
-  visible_line = tk.Label(frame, text=line, bg="#5B5956", font=40)
-  visible_line.grid(row=0, rowspan=13, column=0, columnspan=8, sticky="new")
+  #visible_line = tk.Label(frame, text=line, bg="#5B5956", font=40)
+  #visible_line.grid(row=0, rowspan=13, column=0, columnspan=8, sticky="new")
   #Alternate player turns and turn their point_last_turn value to False.
   if player_turn % 2 == 0:
     current_player = player_one
