@@ -32,7 +32,10 @@ class Tellstone:
     self.mat_location = None
     imagename = self.name.replace(" ","") #Removes the space in the name
     imagename = imagename.lower() #Lowercases it
-    self.image = ImageTk.PhotoImage(Image.open("tellstone" + imagename +".png")) #Translates it to the png string
+    try:
+      self.image = ImageTk.PhotoImage(Image.open("tellstone" + imagename +".png")) #Translates it to the png string
+    except FileNotFoundError:
+      pass
 
 
   def __str__(self):
