@@ -33,7 +33,8 @@ class Tellstone:
     imagename = self.name.replace(" ","") #Removes the space in the name
     imagename = imagename.lower() #Lowercases it
     try:
-      self.image = ImageTk.PhotoImage(Image.open("tellstone" + imagename +".png")) #Translates it to the png string
+      #Translates it to the png string
+      self.image = ImageTk.PhotoImage(Image.open("tellstone" + imagename +".png"))
     except FileNotFoundError:
       pass
 
@@ -66,7 +67,7 @@ class Line:
     self.furthest_left = 3
     self.furthest_right = 3
     #Images must be defined as part of the function to circumvent garbage collection and deletion
-    self.matbase = ImageTk.PhotoImage(Image.open("tellstonesMat.png"))
+    self.matbase = ImageTk.PhotoImage(Image.open("tellstoneMat.png"))
     self.emptyspace = ImageTk.PhotoImage(Image.open("tellstoneEmpty.png"))
     self.hiddenstone = ImageTk.PhotoImage(Image.open("tellstoneHidden.png"))
 
@@ -355,9 +356,9 @@ crown = Tellstone("The Crown")
 shield = Tellstone("The Shield")
 sword = Tellstone("The Sword")
 flag = Tellstone("The Flag")
-knight = Tellstone("The Knight")
-hammer = Tellstone("The Hammer")
-scales = Tellstone("The Scales")
+clover = Tellstone("The Clover")
+world = Tellstone("The World")
+tome = Tellstone("The Tome")
 
 #Initalizing dict of strings to class names:
 stones_dict = {
@@ -365,9 +366,9 @@ stones_dict = {
   "The Shield": shield,
   "The Sword": sword,
   "The Flag": flag,
-  "The Knight": knight,
-  "The Hammer": hammer,
-  "The Scales": scales,
+  "The Clover": clover,
+  "The World": world,
+  "The Tome": tome,
 }
 
 
@@ -635,9 +636,9 @@ while game_over == 0:
       shield = Tellstone("The Shield")
       sword = Tellstone("The Sword")
       flag = Tellstone("The Flag")
-      knight = Tellstone("The Knight")
-      hammer = Tellstone("The Hammer")
-      scales = Tellstone("The Scales")
+      clover = Tellstone("The Clover")
+      world = Tellstone("The World")
+      tome = Tellstone("The Tome")
 
       #Initalizing Line and updating it to make self.list and self.string have the correct values for an empty board.
       line = Line()
