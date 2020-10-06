@@ -34,7 +34,10 @@ class Tellstone:
     imagename = imagename.lower() #Lowercases it
     self.image = ImageTk.PhotoImage(Image.open("tellstone" + imagename +".png"))  #Translates it to the png string
     self.highlighted = False
-
+  
+  def __repr__(self):
+    return f"{self.name}"
+  
   def hide(self):
     self.hidden = True
 
@@ -144,6 +147,7 @@ class Line:
   def peek(self):
     #If there wasn't a point last turn, only do position once.
     if next_player.point_last_turn == False:
+      clear_window()
       update_instructions("What position would you like to look at?")
       position = position_buttons("peek") #Hides non-Tellstones and visible stones
       clear_window()
@@ -151,10 +155,12 @@ class Line:
       confirm_button()
       clear_window()
       self.line[position].hidden = False #Makes peeked stone visible
+      self.line[position].highlighted = True #Highlights stone
       line.update_line()
       update_instructions(f"The stone in position {position + 1} is {self.line[position].name}.")
       confirm_button()
       self.line[position].hidden = True #Makes peeked stone hidden again
+      self.line[position].highlighted = False #De-highlights stone
       line.update_line()
     #If there was a point last turn, you can peek at up to 3 stones.
     if next_player.point_last_turn == True:
@@ -177,11 +183,13 @@ class Line:
       clear_window()
       for i in range(1,num_hidden_stones+1): #Makes all peeked stones visible
         self.line[i].hidden = False
+        self.line[i].highlighted = True #Highlights stone
         line.update_line()
       update_instructions(position_string) #Prints the string of stones
       confirm_button()
       for i in range(1,num_hidden_stones+1): #Makes all peeked stones hidden
         self.line[i].hidden = True
+        self.line[i].highlighted = False #De-highlights stone
         line.update_line()
     
 
@@ -195,6 +203,7 @@ class Line:
     opponent_guess = stone_buttons() #This was originally (not hidden = disabled) but it's really funny to see someone pick a stone that is visible so
     clear_window()
     self.line[position].hidden = False #Shows stone and updates line
+    self.line[position].highlighted = True
     self.update_line()
     if opponent_guess == line.line[position]: #If correct
       next_player.gain_point()
@@ -204,6 +213,8 @@ class Line:
       current_player.gain_point()
       update_instructions(f"Ooh, tough luck. The token in position {position} was actually {line.line[position]}.\n{current_player} has {current_player.points} points, and {next_player} has {next_player.points} points.")
       confirm_button()
+    self.line[position].highlighted = False
+    self.update_line()
 
   def boast(self):
     clear_window()
