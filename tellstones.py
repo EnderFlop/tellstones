@@ -81,18 +81,21 @@ class Line:
       #by i in and added to the original 75 (plus 20 for border margin) gap from the mat.
       current_x_value = (95 + 160*i)
       if isinstance(self.line[i], Tellstone): #If it's a tellstone
-        if self.line[i].hidden == False: #And it's not hidden
-          if self.line[i].highlighted == True:
+        if self.line[i].highlighted == True: #If the stone is highlighted
+          if self.line[i].hidden == False: #And it's not hidden
             #Create image of HIGHLIGHTED tellstone, then put sprite on top
             mat.create_image(current_x_value, 100, anchor="nw", image=self.highlightedstone)
             mat.create_image(current_x_value, 100, anchor="nw", image=self.line[i].image)
           else:
             #Create image of blank tellstone, then put sprite on top
+            mat.create_image(current_x_value, 100, anchor="nw", image=self.highlightedstone)
+        elif self.line[i].highlighted == False: #If the stone isn't highlighted
+          if self.line[i].hidden == False:
+            #If tellstone but not hidden, CreateImage of hidden tellstone
             mat.create_image(current_x_value, 100, anchor="nw", image=self.hiddenstone)
             mat.create_image(current_x_value, 100, anchor="nw", image=self.line[i].image)
-        else:
-          #If tellstone but not hidden, CreateImage of hidden tellstone
-          mat.create_image(current_x_value, 100, anchor="nw", image=self.hiddenstone)
+          else:
+            mat.create_image(current_x_value, 100, anchor="nw", image=self.hiddenstone)
       else:
         #If no stone, stone outline to show blank space
         mat.create_image(current_x_value, 100, anchor="nw", image=self.emptyspace)
@@ -206,11 +209,12 @@ class Line:
     update_instructions(f"What position are you challenging {next_player} to name?")
     position = position_buttons(hidden="peek") #The peek draw funct also works for challenge's purpose
     clear_window()
+    self.line[position].highlighted = True
+    self.update_line()
     update_instructions(f"Ok {next_player}, what Tellstone do you think is there?")
     opponent_guess = stone_buttons() #This was originally (not hidden = disabled) but it's really funny to see someone pick a stone that is visible so
     clear_window()
     self.line[position].hidden = False #Shows stone and updates line
-    self.line[position].highlighted = True
     self.update_line()
     if opponent_guess == line.line[position]: #If correct
       next_player.gain_point()
