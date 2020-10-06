@@ -35,6 +35,13 @@ class Tellstone:
     self.image = ImageTk.PhotoImage(Image.open("tellstone" + imagename +".png"))  #Translates it to the png string
     self.highlighted = False
   
+  def reset(self):
+    self.hidden = False
+    self.is_on_mat = False
+    self.mat_location = None
+    self.highlighted = False
+
+
   def __repr__(self):
     return f"{self.name}"
   
@@ -450,6 +457,7 @@ def stone_buttons(hidden=None): #This writes the 7 stones as buttons. It takes a
     button.grid(padx=x_spread, row=row, column=column, sticky="nsew")
     if hidden == "place": #If it's already on the mat, disable
       if value.is_on_mat == True:
+        print(f"{value} is already on the mat.")
         button["state"] = "disabled"
     column += 1
   button.wait_variable(string)
@@ -617,16 +625,9 @@ while game_over == 0:
     update_instructions("Thank you for playing! Play again?")
     play_again = play_again_buttons()
     if play_again == "yes":
-      #This is probably a shit way to do this but I hope it works.
-      #Reinitalizing all the classes in order to reset them to default states.
-      #Initalizing all the stones
-      crown = Tellstone("The Crown")
-      shield = Tellstone("The Shield")
-      sword = Tellstone("The Sword")
-      flag = Tellstone("The Flag")
-      clover = Tellstone("The Clover")
-      world = Tellstone("The World")
-      tome = Tellstone("The Tome")
+      #Resetting all the stones
+      for stone in stones_dict.values():
+        stone.reset()
 
       #Initalizing Line and updating it to make self.list have the correct values for an empty board.
       line = Line()
