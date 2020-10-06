@@ -32,24 +32,11 @@ class Tellstone:
     self.mat_location = None
     imagename = self.name.replace(" ","") #Removes the space in the name
     imagename = imagename.lower() #Lowercases it
-    try:
-      #Translates it to the png string
-      self.image = ImageTk.PhotoImage(Image.open("tellstone" + imagename +".png"))
-    except FileNotFoundError:
-      pass
-
-
-  def __str__(self):
-    return f"{self.name}"
-
-
-  def __repr__(self):
-    return f"{self.name}"
-
+    self.image = ImageTk.PhotoImage(Image.open("tellstone" + imagename +".png"))  #Translates it to the png string
+    self.highlighted = False
 
   def hide(self):
     self.hidden = True
-
 
   def add_to_line(self, location):
     self.is_on_mat = True
@@ -61,8 +48,6 @@ class Line:
   def __init__(self):
     #self.line is a list of the stone in order, with a blank space if it is empty
     self.line = [" " for i in range(7)]
-    #self.string is a string that is used for __repr__, that has a " . " for a blank spot, " Stone " for a hidden stone, and " (name) " for a visible stone.
-    self.string = ""
     #The first stone will be placed in the middle, so set the current bounds to the middle of the list
     self.furthest_left = 3
     self.furthest_right = 3
@@ -70,10 +55,7 @@ class Line:
     self.matbase = ImageTk.PhotoImage(Image.open("tellstoneMat.png"))
     self.emptyspace = ImageTk.PhotoImage(Image.open("tellstoneEmpty.png"))
     self.hiddenstone = ImageTk.PhotoImage(Image.open("tellstoneHidden.png"))
-
-
-  def __repr__(self):
-    return (f"The line is currently:\n{self.string}")
+    self.highlightedstone = ImageTk.PhotoImage(Image.open("tellstoneHighlight.png"))
 
   def is_empty(self):
     stones_count, _ = stones_on_mat()
@@ -90,33 +72,20 @@ class Line:
       current_x_value = (95 + 160*i)
       if isinstance(self.line[i], Tellstone): #If it's a tellstone
         if self.line[i].hidden == False: #And it's not hidden
-          #Create image of blank tellstone, then put sprite on top
-          mat.create_image(current_x_value, 100, anchor="nw", image=self.hiddenstone)
-          mat.create_image(current_x_value, 100, anchor="nw", image=self.line[i].image)
+          if self.line[i].highlighted == True:
+            #Create image of HIGHLIGHTED tellstone, then put sprite on top
+            mat.create_image(current_x_value, 100, anchor="nw", image=self.highlightedstone)
+            mat.create_image(current_x_value, 100, anchor="nw", image=self.line[i].image)
+          else:
+            #Create image of blank tellstone, then put sprite on top
+            mat.create_image(current_x_value, 100, anchor="nw", image=self.hiddenstone)
+            mat.create_image(current_x_value, 100, anchor="nw", image=self.line[i].image)
         else:
           #If tellstone but not hidden, CreateImage of hidden tellstone
           mat.create_image(current_x_value, 100, anchor="nw", image=self.hiddenstone)
       else:
+        #If no stone, stone outline to show blank space
         mat.create_image(current_x_value, 100, anchor="nw", image=self.emptyspace)
-
-  #Old update string with periods and words below
-  #def update_line(self):
-  #  #Starts by resetting self.string
-  #  self.string = ""
-  #  #Iterates 7 times for the 7 spaces
-  #  for i in range(7):
-  #    #If the index is a Tellstone
-  #    if type(self.line[i]) == Tellstone:
-  #      #and it isn't hidden, add the name of the stone
-  #      if self.line[i].hidden == False:
-  #        self.string += " " + str(self.line[i]) + " "
-  #      #if it is hidden, add the word "stone"
-  #      if self.line[i].hidden == True:
-  #        self.string += " Stone "
-  #    #If it's not a Tellstone, just add a period to mark an empty spot
-  #    else:
-  #      self.string += " . "
-
   
   def add_stone(self):
     clear_window()
@@ -172,7 +141,6 @@ class Line:
     self.update_line()
 
 
-
   def peek(self):
     #If there wasn't a point last turn, only do position once.
     if next_player.point_last_turn == False:
@@ -182,8 +150,12 @@ class Line:
       update_instructions(f"Only {current_player.name} should see this! Press continue when only you are looking.")
       confirm_button()
       clear_window()
+      self.line[position].hidden = False #Makes peeked stone visible
+      line.update_line()
       update_instructions(f"The stone in position {position + 1} is {self.line[position].name}.")
       confirm_button()
+      self.line[position].hidden = True #Makes peeked stone hidden again
+      line.update_line()
     #If there was a point last turn, you can peek at up to 3 stones.
     if next_player.point_last_turn == True:
       update_instructions(f"{next_player} scored a point last turn, so you can look at up to 3 stones.")
@@ -203,10 +175,15 @@ class Line:
       update_instructions(f"Only {current_player.name} should see this! Press continue when only you are looking.") #Confirmation
       confirm_button()
       clear_window()
+      for i in range(1,num_hidden_stones+1): #Makes all peeked stones visible
+        self.line[i].hidden = False
+        line.update_line()
       update_instructions(position_string) #Prints the string of stones
       confirm_button()
+      for i in range(1,num_hidden_stones+1): #Makes all peeked stones hidden
+        self.line[i].hidden = True
+        line.update_line()
     
-
 
   def challenge(self):
     #Asks for position on the line, then check to see if there is a stone there that is hidden.
@@ -373,7 +350,7 @@ stones_dict = {
 
 
 
-#Initalizing Line and updating it to make self.list and self.string have the correct values for an empty board.
+#Initalizing Line and updating it to make self.list have the correct values for an empty board.
 line = Line()
 line.update_line()
 
@@ -640,7 +617,7 @@ while game_over == 0:
       world = Tellstone("The World")
       tome = Tellstone("The Tome")
 
-      #Initalizing Line and updating it to make self.list and self.string have the correct values for an empty board.
+      #Initalizing Line and updating it to make self.list have the correct values for an empty board.
       line = Line()
       line.update_line()
 
