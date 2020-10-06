@@ -4,7 +4,7 @@ This is my own attempt at coding a virtual version of Riot Game's new game, Tell
 ## TELLSTONES 
 is a game of wit, cunning, and most importantly, memory. Can you trick your opponent to victory?
 
-This script is written in Python 3 and runs entirely as text in a cmd.
+This script is written in Python 3 and runs in a window managed by tkinter.
 
 
 ## THE COMMANDS:
@@ -26,9 +26,10 @@ Use all of these actions to trick your opponent every chance you get. Bluff your
 - The Shield
 - The Flag
 - The Sword
-- The Knight
-- The Hammer
-- The Scales
+- The Clover
+- The World
+- The Tome
 
-All of these stones start off the line at the beginning of the game, and any can be placed with the "Place" command. They are all functionally the same but each holds cultural signifigance. The Scales is traditionally placed first.
+All of these stones start off the line at the beginning of the game, and any can be placed with the "Place" command. They are all functionally the same, but each have a different piece of art courtesy of Aleksandr Makarov.
 
+I have learned so much throughout this project. I'm so happy with how it went! Thanks for playing!
