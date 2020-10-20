@@ -27,13 +27,10 @@ string = tk.StringVar() #Same as advance, but a string
 class Tellstone:
   def __init__(self, name):
     self.name = name
-    self.hidden = False
-    self.is_on_mat = False
-    self.mat_location = None
     imagename = self.name.replace(" ","") #Removes the space in the name
     imagename = imagename.lower() #Lowercases it
     self.image = ImageTk.PhotoImage(Image.open("tellstone" + imagename +".png"))  #Translates it to the png string
-    self.highlighted = False
+    self.reset()
   
   def reset(self):
     self.hidden = False
@@ -191,13 +188,13 @@ class Line:
       update_instructions(f"Only {current_player.name} should see this! Press continue when only you are looking.") #Confirmation
       confirm_button()
       clear_window()
-      for i in range(1,num_hidden_stones+1): #Makes all peeked stones visible
+      for i in position_list: #Makes all peeked stones visible
         self.line[i].hidden = False
         self.line[i].highlighted = True #Highlights stone
         line.update_line()
       update_instructions(position_string) #Prints the string of stones
       confirm_button()
-      for i in range(1,num_hidden_stones+1): #Makes all peeked stones hidden
+      for i in position_list: #Makes all peeked stones hidden
         self.line[i].hidden = True
         self.line[i].highlighted = False #De-highlights stone
         line.update_line()
@@ -247,6 +244,8 @@ class Line:
       for stone_index in hidden_list:
         #Get a guess from the user on what stone is in that position
         clear_window()
+        self.line[stone_index].highlighted = True
+        self.update_line()
         if correct_count == 0:
           update_instructions(f"The Tellstone in position {stone_index + 1} is: ") #If it's the first time, just ask the stone
         else:
@@ -256,6 +255,7 @@ class Line:
           #Print correct and update the line so that stone is now visible. Reprint the line and add 1 to correct_count
           clear_window()
           self.line[stone_index].hidden = False
+          self.line[stone_index].highlighted = False
           self.update_line()
           correct_count += 1
         #Otherwise, end the game. Reveal all stones, print the line, and give the other player an absurd amount of points to rub it in.
@@ -264,6 +264,7 @@ class Line:
           update_instructions(f"Tough luck.\nThat Tellstone was {self.line[stone_index]}.\n{next_player} wins!!!")
           for value in stones_dict.values():
             value.hidden = False
+            value.highlighted = False
           self.update_line()
           next_player.points = 9001
           confirm_button()
@@ -302,6 +303,8 @@ class Line:
         for stone_index in hidden_list:
           #Get a guess from the user on what stone is in that position
           clear_window()
+          self.line[stone_index].highlighted = True
+          self.update_line()
           if correct_count == 0:
             update_instructions(f"The Tellstone in position {stone_index + 1} is: ") #If it's the first time, just ask the stone
           else:
@@ -311,6 +314,7 @@ class Line:
             #Print correct and update the line so that stone is now visible. Reprint the line and add 1 to correct_count
             clear_window()
             self.line[stone_index].hidden = False
+            self.line[stone_index].highlighted = False
             self.update_line()
             correct_count += 1
           #Otherwise, end the game. Reveal all stones, print the line, and give the other player an absurd amount of points to rub it in.
@@ -319,6 +323,7 @@ class Line:
             update_instructions(f"Tough luck.\nThat Tellstone was {self.line[stone_index]}.\n{current_player} wins!!!")
             for value in stones_dict.values():
               value.hidden = False
+              value.highlighted = False
             self.update_line()
             current_player.points = 9001
             confirm_button()
@@ -461,7 +466,6 @@ def stone_buttons(hidden=None): #This writes the 7 stones as buttons. It takes a
     button.grid(padx=x_spread, row=row, column=column, sticky="nsew")
     if hidden == "place": #If it's already on the mat, disable
       if value.is_on_mat == True:
-        print(f"{value} is already on the mat.")
         button["state"] = "disabled"
     column += 1
   button.wait_variable(string)
@@ -580,10 +584,18 @@ def gameplay_loop():
   #Check to see if a player has won
   if current_player.points >= 3:
     clear_window()
+    for value in stones_dict.values():
+      value.hidden = False
+      value.highlighted = False
+    line.update_line()
     update_instructions(f"Game over! {current_player.name} reached {current_player.points} points!")
     game_over = 1
   if next_player.points >= 3:
     clear_window()
+    for value in stones_dict.values():
+      value.hidden = False
+      value.highlighted = False
+    line.update_line()
     update_instructions(f"Game over! {next_player.name} reached {next_player.points} points!")
     game_over = 1
   #Reset var for input loop.
